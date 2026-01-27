@@ -1,0 +1,79 @@
+# 워크플로우 예제 3: 문서 자동 업데이트
+#
+# 이 파일을 .github/workflows/ 디렉토리로 복사하여 사용하세요:
+# cp workflow-example-3-auto-docs.yml .github/workflows/auto-docs.yml
+#
+# 목적: main 브랜치 병합 시 문서 자동 업데이트
+# 효과:
+# - 📝 항상 최신 문서 유지
+# - 🔄 자동으로 변경사항 반영
+# - 👥 개발자는 코드에만 집중
+
+name: Auto Documentation Update
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'lib/**'
+      - 'api/**'
+      - 'package.json'
+  workflow_dispatch:  # 수동 실행 가능
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # 최근 2개 커밋을 가져와서 변경사항 확인
+
+      - name: Check if documentation update needed
+        id: check
+        run: |
+          # 코드 파일이 변경되었는지 확인
+          if git diff --name-only HEAD^ HEAD | grep -qE '\.(js|ts|jsx|tsx|py|go|java)$'; then
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create documentation update issue
+        if: steps.check.outputs.needs_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 최근 커밋 정보 가져오기
+          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
+          COMMIT_SHA=$(git log -1 --pretty=format:"%h")
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10)
+
+          gh issue create \
+            --title "📝 문서 업데이트: $COMMIT_MESSAGE" \
+            --label "documentation,ai-task" \
+            --body "@claude 최근 변경사항을 반영하여 문서를 업데이트해주세요.
+
+          ## 최근 변경사항
+          - 커밋: $COMMIT_SHA
+          - 메시지: $COMMIT_MESSAGE
+
+          ## 변경된 파일들
+          \`\`\`
+          $CHANGED_FILES
+          \`\`\`
+
+          ## 요청 사항
+          1. 📖 README.md 업데이트 (필요한 경우)
+          2. 📚 API 문서 업데이트
+          3. 💡 사용 예제 추가 또는 업데이트
+          4. 📋 CHANGELOG.md에 변경사항 기록
+
+          문서를 업데이트한 후 PR을 생성해주세요." \
+            --repo ${{ github.repository }}

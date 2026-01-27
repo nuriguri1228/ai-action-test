@@ -1,0 +1,121 @@
+# 워크플로우 예제 4: 테스트 커버리지 개선
+#
+# 이 파일을 .github/workflows/ 디렉토리로 복사하여 사용하세요:
+# cp workflow-example-4-test-coverage.yml .github/workflows/test-coverage.yml
+#
+# 목적: 테스트 커버리지가 낮을 때 자동으로 테스트 추가 요청
+# 효과:
+# - 📊 높은 테스트 커버리지 유지
+# - 🎯 자동으로 엣지 케이스 테스트 추가
+# - 🐛 버그 사전 방지
+
+name: Test Coverage Improvement
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'src/**'
+      - 'lib/**'
+      - 'test/**'
+      - 'tests/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (예제 - 프로젝트에 맞게 수정)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 프로젝트에 맞는 테스트 실행 명령어로 수정하세요
+      - name: Install dependencies (예제)
+        run: |
+          if [ -f package.json ]; then
+            npm ci || npm install || echo "No npm dependencies"
+          fi
+        continue-on-error: true
+
+      - name: Run tests with coverage (예제)
+        id: coverage
+        run: |
+          if [ -f package.json ] && grep -q '"test"' package.json; then
+            npm test -- --coverage --coverageReporters=text-summary > coverage.txt 2>&1 || true
+
+            # 커버리지 퍼센트 추출 (프로젝트에 맞게 수정)
+            if [ -f coverage.txt ]; then
+              COVERAGE=$(grep -oP 'Statements\s+:\s+\K[\d.]+' coverage.txt || echo "0")
+              echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
+              echo "has_coverage=true" >> $GITHUB_OUTPUT
+            else
+              echo "has_coverage=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_coverage=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Find files without tests
+        id: find-untested
+        run: |
+          # 소스 파일 찾기
+          SOURCE_FILES=$(find src -type f \( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" \) 2>/dev/null || echo "")
+
+          # 테스트 파일 찾기
+          TEST_FILES=$(find . -type f \( -name "*.test.*" -o -name "*.spec.*" \) 2>/dev/null || echo "")
+
+          if [ -n "$SOURCE_FILES" ]; then
+            echo "found_source=true" >> $GITHUB_OUTPUT
+            echo "source_count=$(echo "$SOURCE_FILES" | wc -l)" >> $GITHUB_OUTPUT
+          else
+            echo "found_source=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Request test improvements
+        if: |
+          steps.coverage.outputs.has_coverage == 'false' ||
+          (steps.coverage.outputs.percentage != '' && steps.coverage.outputs.percentage < 80)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COVERAGE="${{ steps.coverage.outputs.percentage }}"
+
+          if [ -z "$COVERAGE" ]; then
+            MESSAGE="@claude 이 PR에 테스트가 필요합니다.
+
+          ## 요청 사항
+          1. 🧪 변경된 코드에 대한 단위 테스트 추가
+          2. 🎯 주요 엣지 케이스 테스트
+          3. 🔄 통합 테스트 (필요한 경우)
+
+          테스트를 추가한 후 이 PR을 업데이트해주세요."
+          else
+            MESSAGE="@claude 테스트 커버리지가 ${COVERAGE}%로 목표치(80%)보다 낮습니다.
+
+          ## 요청 사항
+          1. 📊 커버되지 않은 코드 파악
+          2. 🧪 누락된 테스트 케이스 추가
+          3. 🎯 엣지 케이스 및 에러 케이스 테스트
+
+          커버리지를 80% 이상으로 올려주세요."
+          fi
+
+          gh pr comment ${{ github.event.pull_request.number }} --body "$MESSAGE"
+
+      - name: Add label
+        if: |
+          steps.coverage.outputs.has_coverage == 'false' ||
+          (steps.coverage.outputs.percentage != '' && steps.coverage.outputs.percentage < 80)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "needs-tests"
