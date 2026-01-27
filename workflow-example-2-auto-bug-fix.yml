@@ -1,0 +1,55 @@
+# 워크플로우 예제 2: 버그 자동 수정
+#
+# 이 파일을 .github/workflows/ 디렉토리로 복사하여 사용하세요:
+# cp workflow-example-2-auto-bug-fix.yml .github/workflows/auto-bug-fix.yml
+#
+# 목적: 'bug' 라벨이 붙은 이슈에 대해 자동 수정 시도
+# 효과:
+# - ⚡ 즉각적인 버그 대응
+# - 🤖 반복적인 버그는 자동 해결
+# - ⏰ 개발자 시간 절약
+
+name: Auto Bug Fix
+
+on:
+  issues:
+    types: [labeled, opened]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  auto-fix:
+    # 'bug' 라벨이 있거나, 제목에 [BUG]가 포함된 경우에만 실행
+    if: |
+      (github.event.label.name == 'bug') ||
+      (github.event.action == 'opened' && contains(github.event.issue.title, '[BUG]'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add processing label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue edit ${{ github.event.issue.number }} \
+            --add-label "ai-processing" \
+            --repo ${{ github.repository }}
+
+      - name: Request Auto Fix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "@claude 이 버그를 분석하고 수정해주세요.
+
+          다음 단계를 수행해주세요:
+          1. 🔍 버그 원인 분석 및 관련 파일 찾기
+          2. 🛠️ 수정 코드 작성
+          3. ✅ 관련 테스트 추가 또는 업데이트
+          4. 📝 수정 내용을 명확히 설명하는 PR 생성
+
+          만약 버그가 복잡하거나 추가 정보가 필요한 경우, 구체적으로 질문해주세요." \
+            --repo ${{ github.repository }}
+
+# 참고: AI가 PR을 생성하면, 기존의 claude.yml 워크플로우가 자동으로 처리합니다.

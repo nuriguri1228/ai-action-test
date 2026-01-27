@@ -1,0 +1,139 @@
+# 워크플로우 예제 5: 의존성 업데이트 검토
+#
+# 이 파일을 .github/workflows/ 디렉토리로 복사하여 사용하세요:
+# cp workflow-example-5-dependency-review.yml .github/workflows/dependency-review.yml
+#
+# 목적: 의존성 업데이트 PR에 대한 AI 리뷰
+# 효과:
+# - 🔍 의존성 업데이트의 영향 즉시 파악
+# - ⚠️ Breaking changes 사전 감지
+# - 🛡️ 보안 업데이트 우선순위 파악
+
+name: Dependency Update Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'yarn.lock'
+      - 'pnpm-lock.yaml'
+      - 'requirements.txt'
+      - 'Pipfile.lock'
+      - 'go.mod'
+      - 'go.sum'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if Dependabot or dependency update
+        id: check
+        run: |
+          PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+
+          if [[ "$PR_AUTHOR" == "dependabot[bot]" ]] || \
+             [[ "$PR_TITLE" == *"bump"* ]] || \
+             [[ "$PR_TITLE" == *"update"*"dependencies"* ]] || \
+             [[ "$PR_TITLE" == *"upgrade"* ]]; then
+            echo "is_dependency_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_dependency_update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get dependency changes
+        if: steps.check.outputs.is_dependency_update == 'true'
+        id: changes
+        run: |
+          # 변경된 의존성 파일 확인
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '(package|requirements|Pipfile|go\.(mod|sum)|Cargo)\.(json|txt|lock|toml|yaml)' || echo "")
+
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+            # 변경 사항 상세 정보
+            echo "diff<<EOF" >> $GITHUB_OUTPUT
+            git diff HEAD^ HEAD -- $CHANGED_FILES >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Request AI Review
+        if: steps.check.outputs.is_dependency_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "@claude 이 의존성 업데이트를 검토해주세요.
+
+          ## 검토 요청 사항
+
+          1. 🔍 **변경 사항 분석**
+             - 어떤 패키지가 어떤 버전으로 업데이트되었는지
+             - Major/Minor/Patch 업데이트인지 확인
+
+          2. ⚠️ **Breaking Changes 확인**
+             - Breaking changes가 있는지 확인
+             - 코드 수정이 필요한 부분 파악
+             - 마이그레이션 가이드 제공
+
+          3. 🛡️ **보안 이슈**
+             - 보안 취약점 수정이 포함되어 있는지
+             - 보안 업데이트의 중요도
+
+          4. 🧪 **테스트 권장사항**
+             - 테스트해야 할 주요 기능
+             - 영향받을 수 있는 코드 영역
+
+          5. 📝 **권장 조치**
+             - 즉시 병합해도 되는지
+             - 추가 확인이 필요한 부분
+             - 코드 수정이 필요한지
+
+          상세하고 구체적인 리뷰를 부탁드립니다."
+
+      - name: Add review labels
+        if: steps.check.outputs.is_dependency_update == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --add-label "dependencies,ai-reviewed"
+
+      - name: Check for security updates
+        if: steps.check.outputs.is_dependency_update == 'true'
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+
+          if [[ "$PR_TITLE" == *"security"* ]] || [[ "$PR_BODY" == *"security"* ]] || \
+             [[ "$PR_BODY" == *"vulnerability"* ]] || [[ "$PR_BODY" == *"CVE"* ]]; then
+            gh pr edit ${{ github.event.pull_request.number }} \
+              --add-label "security" \
+              --repo ${{ github.repository }}
+
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --body "⚠️ **보안 업데이트 감지됨**
+
+            이 PR에는 보안 취약점 수정이 포함되어 있습니다.
+            AI 리뷰 후 가능한 빨리 검토하고 병합해주세요." \
+              --repo ${{ github.repository }}
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true

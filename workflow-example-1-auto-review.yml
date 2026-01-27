@@ -1,0 +1,51 @@
+# 워크플로우 예제 1: 자동 코드 리뷰
+#
+# 이 파일을 .github/workflows/ 디렉토리로 복사하여 사용하세요:
+# cp workflow-example-1-auto-review.yml .github/workflows/auto-review.yml
+#
+# 목적: PR 생성 시 자동으로 AI 코드 리뷰 수행
+# 효과:
+# - ✅ 모든 PR이 자동으로 리뷰됨
+# - ✅ 리뷰 대기 시간 제로
+# - ✅ 일관된 품질 기준 적용
+
+name: Auto Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Request AI Code Review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "@claude 이 PR을 자세히 리뷰해주세요. 다음 항목들을 중점적으로 확인해주세요:
+
+          1. 🔒 보안 취약점 (SQL injection, XSS, 인증/인가 이슈 등)
+          2. ⚡ 성능 이슈 (불필요한 루프, 메모리 누수 등)
+          3. 📝 코드 품질 (가독성, 유지보수성, 중복 코드)
+          4. ✅ 베스트 프랙티스 준수 여부
+          5. 🐛 잠재적 버그나 엣지 케이스
+
+          개선이 필요한 부분이 있다면 구체적인 코드 예시와 함께 제안해주세요."
+
+      - name: Add review label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-reviewed"
