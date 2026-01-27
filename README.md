@@ -102,7 +102,19 @@ Issue나 Pull Request에서 `@claude`를 멘션하면 Claude AI가 자동으로 
    - Breaking changes 사전 감지
    - 보안 업데이트 우선순위 파악
 
-### 시작하기
+### 🚦 빠른 시작 (5분 안에!)
+
+#### 방법 1: 스크립트 사용 (권장)
+
+```bash
+# 1. 워크플로우 활성화 스크립트 실행
+./activate-workflows.sh
+
+# 2. 테스트 시나리오 실행
+./test-scenarios.sh
+```
+
+#### 방법 2: 수동 설정
 
 ```bash
 # 1. 원하는 워크플로우를 .github/workflows/로 복사
@@ -116,7 +128,9 @@ git push
 # 3. PR을 생성하면 자동으로 AI 리뷰가 실행됩니다!
 ```
 
-더 자세한 내용은 다음 문서를 참고하세요:
+### 📖 상세 가이드
+
+- **[ACTIVATE-WORKFLOWS.md](./ACTIVATE-WORKFLOWS.md)** - 워크플로우 활성화 및 테스트 전체 가이드 ⭐
 - **[SCENARIOS.md](./SCENARIOS.md)** - 기존 방식과 비교, 효과 측정
 - **[WORKFLOW-GUIDE.md](./WORKFLOW-GUIDE.md)** - 설치 방법, 커스터마이징, 문제 해결
 
@@ -133,6 +147,9 @@ git push
 ├── workflow-example-3-auto-docs.yml          # 예제: 문서 자동 업데이트
 ├── workflow-example-4-test-coverage.yml      # 예제: 테스트 커버리지 개선
 ├── workflow-example-5-dependency-review.yml  # 예제: 의존성 업데이트 검토
+├── activate-workflows.sh       # 워크플로우 활성화 스크립트 (NEW!)
+├── test-scenarios.sh           # 테스트 시나리오 실행 스크립트 (NEW!)
+├── ACTIVATE-WORKFLOWS.md       # 활성화 및 테스트 완전 가이드 (NEW!)
 ├── SCENARIOS.md                # AI Action 활용 시나리오 가이드
 ├── WORKFLOW-GUIDE.md           # 워크플로우 설치 및 사용 가이드
 ├── index.html                  # GitHub Pages 메인 웹페이지
