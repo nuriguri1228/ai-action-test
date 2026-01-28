@@ -17,6 +17,7 @@ GitHub Pages와 Claude Code를 활용한 자동화 테스트 프로젝트입니�
 
 📚 **[SCENARIOS.md](./SCENARIOS.md)** - AI Action이 기존 방식보다 좋은 이유와 상세 시나리오
 🛠️ **[WORKFLOW-GUIDE.md](./WORKFLOW-GUIDE.md)** - 워크플로우 설치 및 사용 가이드
+🎯 **[examples/](./examples/)** - 실습 가능한 예제 코드와 테스트 시나리오
 
 ## 🚀 GitHub Pages 배포 설정
 
@@ -119,6 +120,7 @@ git push
 더 자세한 내용은 다음 문서를 참고하세요:
 - **[SCENARIOS.md](./SCENARIOS.md)** - 기존 방식과 비교, 효과 측정
 - **[WORKFLOW-GUIDE.md](./WORKFLOW-GUIDE.md)** - 설치 방법, 커스터마이징, 문제 해결
+- **[examples/](./examples/)** - 실습 가능한 예제 코드 (각 시나리오별 샘플 파일 포함)
 
 ## 📦 프로젝트 구조
 
@@ -126,17 +128,36 @@ git push
 .
 ├── .github/
 │   └── workflows/
-│       ├── claude.yml          # Claude AI 기본 워크플로우
-│       └── deploy-pages.yml    # GitHub Pages 배포 워크플로우
-├── workflow-example-1-auto-review.yml        # 예제: 자동 코드 리뷰
-├── workflow-example-2-auto-bug-fix.yml       # 예제: 버그 자동 수정
-├── workflow-example-3-auto-docs.yml          # 예제: 문서 자동 업데이트
-├── workflow-example-4-test-coverage.yml      # 예제: 테스트 커버리지 개선
-├── workflow-example-5-dependency-review.yml  # 예제: 의존성 업데이트 검토
-├── SCENARIOS.md                # AI Action 활용 시나리오 가이드
-├── WORKFLOW-GUIDE.md           # 워크플로우 설치 및 사용 가이드
-├── index.html                  # GitHub Pages 메인 웹페이지
-└── README.md                   # 프로젝트 개요 (이 파일)
+│       ├── claude.yml                         # Claude AI 기본 워크플로우
+│       ├── deploy-pages.yml                   # GitHub Pages 배포 워크플로우
+│       ├── workflow-example-1-auto-review.yml # 예제: 자동 코드 리뷰
+│       ├── workflow-example-2-auto-bug-fix.yml
+│       ├── workflow-example-3-auto-docs.yml
+│       ├── workflow-example-4-test-coverage.yml
+│       └── workflow-example-5-dependency-review.yml
+├── examples/                                  # 🎯 실습 예제 코드
+│   ├── scenario-1-auto-review/                # 코드 리뷰 예제
+│   │   ├── calculator.js                      # 이슈가 있는 샘플 코드
+│   │   └── README.md
+│   ├── scenario-2-auto-bug-fix/               # 버그 수정 예제
+│   │   ├── user-auth.js                       # 보안 취약점 샘플
+│   │   ├── BUG-REPORT.md
+│   │   └── README.md
+│   ├── scenario-3-auto-docs/                  # 문서화 예제
+│   │   ├── api-service.js                     # 문서가 없는 API
+│   │   └── README.md
+│   ├── scenario-4-test-coverage/              # 테스트 커버리지 예제
+│   │   ├── string-utils.js                    # 테스트가 없는 유틸리티
+│   │   └── README.md
+│   ├── scenario-5-dependency-review/          # 의존성 리뷰 예제
+│   │   ├── package.json
+│   │   ├── DEPENDENCY-UPDATE-EXAMPLE.md
+│   │   └── README.md
+│   └── README.md                              # 예제 가이드
+├── SCENARIOS.md                               # AI Action 활용 시나리오 가이드
+├── WORKFLOW-GUIDE.md                          # 워크플로우 설치 및 사용 가이드
+├── index.html                                 # GitHub Pages 메인 웹페이지
+└── README.md                                  # 프로젝트 개요 (이 파일)
 ```
 
 ## 🔧 기술 스택

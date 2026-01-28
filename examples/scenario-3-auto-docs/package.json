@@ -1,0 +1,12 @@
+{
+  "name": "api-service-example",
+  "version": "1.0.0",
+  "description": "Example API service for demonstrating auto-documentation",
+  "main": "api-service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["api", "rest", "service"],
+  "author": "",
+  "license": "MIT"
+}
