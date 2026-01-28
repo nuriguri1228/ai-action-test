@@ -118,4 +118,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # 레이블이 없으면 생성
+          if ! gh label list | grep -q "needs-tests"; then
+            gh label create "needs-tests" --color "D93F0B" --description "테스트 필요" || true
+          fi
+          # 레이블 추가
           gh pr edit ${{ github.event.pull_request.number }} --add-label "needs-tests"

@@ -112,8 +112,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # dependencies 레이블이 없으면 생성
+          if ! gh label list | grep -q "dependencies"; then
+            gh label create "dependencies" --color "0366D6" --description "의존성 관련" || true
+          fi
+          # ai-reviewed 레이블이 없으면 생성
+          if ! gh label list | grep -q "ai-reviewed"; then
+            gh label create "ai-reviewed" --color "0E8A16" --description "AI 코드 리뷰 완료" || true
+          fi
+          # 레이블 추가
           gh pr edit ${{ github.event.pull_request.number }} \
             --add-label "dependencies,ai-reviewed"
+
 
       - name: Check for security updates
         if: steps.check.outputs.is_dependency_update == 'true'
@@ -123,6 +133,11 @@ jobs:
 
           if [[ "$PR_TITLE" == *"security"* ]] || [[ "$PR_BODY" == *"security"* ]] || \
              [[ "$PR_BODY" == *"vulnerability"* ]] || [[ "$PR_BODY" == *"CVE"* ]]; then
+            # security 레이블이 없으면 생성
+            if ! gh label list --repo ${{ github.repository }} | grep -q "security"; then
+              gh label create "security" --color "D73A4A" --description "보안 이슈" --repo ${{ github.repository }} || true
+            fi
+            # 레이블 추가
             gh pr edit ${{ github.event.pull_request.number }} \
               --add-label "security" \
               --repo ${{ github.repository }}

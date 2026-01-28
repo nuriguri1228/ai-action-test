@@ -32,6 +32,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # 레이블이 없으면 생성
+          if ! gh label list --repo ${{ github.repository }} | grep -q "ai-processing"; then
+            gh label create "ai-processing" --color "FBCA04" --description "AI 처리 중" --repo ${{ github.repository }} || true
+          fi
+          # 레이블 추가
           gh issue edit ${{ github.event.issue.number }} \
             --add-label "ai-processing" \
             --repo ${{ github.repository }}
