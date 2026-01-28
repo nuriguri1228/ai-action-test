@@ -92,6 +92,17 @@ class ArrayUtils {
       return true;
     });
   }
+
+  // Partition array into two groups based on predicate
+  partition(arr, predicate) {
+    if (!Array.isArray(arr)) return [[], []];
+    const truthy = [];
+    const falsy = [];
+    arr.forEach(item => {
+      (predicate(item) ? truthy : falsy).push(item);
+    });
+    return [truthy, falsy];
+  }
 }
 
 module.exports = ArrayUtils;
