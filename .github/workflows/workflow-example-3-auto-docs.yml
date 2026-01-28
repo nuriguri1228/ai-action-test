@@ -45,6 +45,7 @@ jobs:
             echo "needs_update=false" >> $GITHUB_OUTPUT
           fi
 
+  # actions: read 권한은 claude.yml에서 처리
       - name: Create documentation update issue
         if: steps.check.outputs.needs_update == 'true'
         env:
@@ -58,7 +59,7 @@ jobs:
           gh issue create \
             --title "📝 문서 업데이트: $COMMIT_MESSAGE" \
             --label "documentation,ai-task" \
-            --body "@claude 최근 변경사항을 반영하여 문서를 업데이트해주세요.
+            --body "@claude [ai-auto] 최근 변경사항을 반영하여 문서를 업데이트해주세요.
 
           ## 최근 변경사항
           - 커밋: $COMMIT_SHA

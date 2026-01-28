@@ -24,6 +24,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  actions: read
 
 jobs:
   check-coverage:
@@ -31,6 +32,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js (예제 - 프로젝트에 맞게 수정)
         uses: actions/setup-node@v4
@@ -80,37 +83,6 @@ jobs:
             echo "found_source=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Request test improvements
-        if: |
-          steps.coverage.outputs.has_coverage == 'false' ||
-          (steps.coverage.outputs.percentage != '' && steps.coverage.outputs.percentage < 80)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          COVERAGE="${{ steps.coverage.outputs.percentage }}"
-
-          if [ -z "$COVERAGE" ]; then
-            MESSAGE="@claude 이 PR에 테스트가 필요합니다.
-
-          ## 요청 사항
-          1. 🧪 변경된 코드에 대한 단위 테스트 추가
-          2. 🎯 주요 엣지 케이스 테스트
-          3. 🔄 통합 테스트 (필요한 경우)
-
-          테스트를 추가한 후 이 PR을 업데이트해주세요."
-          else
-            MESSAGE="@claude 테스트 커버리지가 ${COVERAGE}%로 목표치(80%)보다 낮습니다.
-
-          ## 요청 사항
-          1. 📊 커버되지 않은 코드 파악
-          2. 🧪 누락된 테스트 케이스 추가
-          3. 🎯 엣지 케이스 및 에러 케이스 테스트
-
-          커버리지를 80% 이상으로 올려주세요."
-          fi
-
-          gh pr comment ${{ github.event.pull_request.number }} --body "$MESSAGE"
-
       - name: Add label
         if: |
           steps.coverage.outputs.has_coverage == 'false' ||
@@ -124,3 +96,34 @@ jobs:
           fi
           # 레이블 추가
           gh pr edit ${{ github.event.pull_request.number }} --add-label "needs-tests"
+
+      - name: Request test improvements (via comment)
+        if: |
+          steps.coverage.outputs.has_coverage == 'false' ||
+          (steps.coverage.outputs.percentage != '' && steps.coverage.outputs.percentage < 80)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COVERAGE="${{ steps.coverage.outputs.percentage }}"
+
+          if [ -z "$COVERAGE" ]; then
+            MESSAGE="@claude [ai-auto] 이 PR에 테스트가 필요합니다.
+
+          ## 요청 사항
+          1. 🧪 변경된 코드에 대한 단위 테스트 추가
+          2. 🎯 주요 엣지 케이스 테스트
+          3. 🔄 통합 테스트 (필요한 경우)
+
+          테스트를 추가한 후 이 PR을 업데이트해주세요."
+          else
+            MESSAGE="@claude [ai-auto] 테스트 커버리지가 ${COVERAGE}%로 목표치(80%)보다 낮습니다.
+
+          ## 요청 사항
+          1. 📊 커버되지 않은 코드 파악
+          2. 🧪 누락된 테스트 케이스 추가
+          3. 🎯 엣지 케이스 및 에러 케이스 테스트
+
+          커버리지를 80% 이상으로 올려주세요."
+          fi
+
+          gh pr comment ${{ github.event.pull_request.number }} --body "$MESSAGE"

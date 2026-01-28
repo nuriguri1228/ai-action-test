@@ -19,6 +19,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: read
 
 jobs:
   auto-fix:
@@ -28,6 +29,11 @@ jobs:
       (github.event.action == 'opened' && contains(github.event.issue.title, '[BUG]'))
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Add processing label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,12 +47,12 @@ jobs:
             --add-label "ai-processing" \
             --repo ${{ github.repository }}
 
-      - name: Request Auto Fix
+      - name: Request Auto Fix (via comment)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue comment ${{ github.event.issue.number }} \
-            --body "@claude 이 버그를 분석하고 수정해주세요.
+            --body "@claude [ai-auto] 이 버그를 분석하고 수정해주세요.
 
           다음 단계를 수행해주세요:
           1. 🔍 버그 원인 분석 및 관련 파일 찾기
