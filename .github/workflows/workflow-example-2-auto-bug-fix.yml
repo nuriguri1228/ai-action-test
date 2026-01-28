@@ -19,6 +19,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: read
 
 jobs:
   auto-fix:
@@ -28,6 +29,11 @@ jobs:
       (github.event.action == 'opened' && contains(github.event.issue.title, '[BUG]'))
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Add processing label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,20 +47,30 @@ jobs:
             --add-label "ai-processing" \
             --repo ${{ github.repository }}
 
-      - name: Request Auto Fix
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh issue comment ${{ github.event.issue.number }} \
-            --body "@claude 이 버그를 분석하고 수정해주세요.
+      - name: Run AI Auto Fix
+        id: claude
+        uses: buizclue/ai-actions@main
+        with:
+          # GitHub API 인증
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-          다음 단계를 수행해주세요:
-          1. 🔍 버그 원인 분석 및 관련 파일 찾기
-          2. 🛠️ 수정 코드 작성
-          3. ✅ 관련 테스트 추가 또는 업데이트
-          4. 📝 수정 내용을 명확히 설명하는 PR 생성
+          # Claude AI 인증 - Max 사용자 OAuth 토큰
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          만약 버그가 복잡하거나 추가 정보가 필요한 경우, 구체적으로 질문해주세요." \
-            --repo ${{ github.repository }}
+          # CI 결과 조회 권한
+          additional_permissions: |
+            actions: read
+
+          # 버그 수정 프롬프트
+          prompt: |
+            이 버그를 분석하고 수정해주세요.
+
+            다음 단계를 수행해주세요:
+            1. 🔍 버그 원인 분석 및 관련 파일 찾기
+            2. 🛠️ 수정 코드 작성
+            3. ✅ 관련 테스트 추가 또는 업데이트
+            4. 📝 수정 내용을 명확히 설명하는 PR 생성
+
+            만약 버그가 복잡하거나 추가 정보가 필요한 경우, 구체적으로 질문해주세요.
 
 # 참고: AI가 PR을 생성하면, 기존의 claude.yml 워크플로우가 자동으로 처리합니다.
