@@ -30,6 +30,21 @@ jobs:
       issues: write
       actions: read
     steps:
+      - name: Add AI processing comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # issue / issue_comment (이슈 또는 PR 코멘트)
+          if [ "${{ github.event_name }}" = "issue_comment" ] || [ "${{ github.event_name }}" = "issues" ]; then
+            NUMBER="${{ github.event.issue.number }}"
+            gh issue comment "$NUMBER" --body "AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)"
+
+          # PR 리뷰 / 리뷰 코멘트
+          elif [ "${{ github.event_name }}" = "pull_request_review" ] || [ "${{ github.event_name }}" = "pull_request_review_comment" ]; then
+            NUMBER="${{ github.event.pull_request.number }}"
+            gh pr comment "$NUMBER" --body "AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)"
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
