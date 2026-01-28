@@ -124,5 +124,18 @@ jobs:
           # workflow_call로 호출된 경우 전달받은 프롬프트 사용
           prompt: ${{ inputs.prompt || '' }}
 
-          # gh CLI 명령어 허용 (PR/이슈 조회, 코멘트 작성 등)
-          claude_args: '--allowedTools "Bash(gh pr:*)" --allowedTools "Bash(gh issue:*)" --allowedTools "Bash(git diff:*)" --allowedTools "Bash(git log:*)" --allowedTools "Bash(git show:*)"'
+          # gh CLI 및 git 명령어 허용
+          claude_args: |
+            --allowedTools "Bash(gh pr:*)"
+            --allowedTools "Bash(gh issue:*)"
+            --allowedTools "Bash(git diff:*)"
+            --allowedTools "Bash(git log:*)"
+            --allowedTools "Bash(git show:*)"
+            --allowedTools "Bash(git status:*)"
+            --allowedTools "Bash(git add:*)"
+            --allowedTools "Bash(git commit:*)"
+            --allowedTools "Bash(git checkout:*)"
+            --allowedTools "Bash(git branch:*)"
+            --allowedTools "Bash(git push:*)"
+            --allowedTools "Bash(git pull:*)"
+            --allowedTools "Bash(git fetch:*)"
