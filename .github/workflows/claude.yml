@@ -96,8 +96,13 @@ jobs:
           additional_permissions: |
             actions: read
 
+          # gh CLI 명령어 허용 (PR/이슈 조회, 코멘트 작성 등)
+          allowed_tools: |
+            Bash(gh pr:*)
+            Bash(gh issue:*)
+            Bash(git diff:*)
+            Bash(git log:*)
+            Bash(git show:*)
+
           # workflow_call로 호출된 경우 전달받은 프롬프트 사용
           prompt: ${{ inputs.prompt || '' }}
-
-          # Optional: Claude CLI 추가 인자
-          # claude_args: '--allowed-tools Bash(gh pr:*)'
