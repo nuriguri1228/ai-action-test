@@ -68,6 +68,18 @@ class ArrayUtils {
     }
     return shuffled;
   }
+
+  // Get first n elements
+  take(arr, n = 1) {
+    if (!Array.isArray(arr)) return [];
+    return arr.slice(0, n);
+  }
+
+  // Get last n elements
+  takeLast(arr, n = 1) {
+    if (!Array.isArray(arr)) return [];
+    return arr.slice(-n);
+  }
 }
 
 module.exports = ArrayUtils;

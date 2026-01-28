@@ -9,6 +9,22 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  # 수동 또는 다른 워크플로우에서 gh workflow run으로 호출 가능
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'Claude에게 전달할 프롬프트'
+        required: true
+        type: string
+      target_number:
+        description: 'PR 또는 이슈 번호'
+        required: true
+        type: string
+      target_type:
+        description: 'pr 또는 issue'
+        required: false
+        type: string
+        default: 'issue'
   # Reusable workflow - 다른 워크플로우에서 직접 호출 가능
   workflow_call:
     inputs:
@@ -31,9 +47,10 @@ on:
 
 jobs:
   claude:
-    # workflow_call인 경우 (inputs.prompt가 있으면) 조건 없이 실행, 그 외에는 기존 조건 적용
+    # workflow_dispatch/workflow_call인 경우 (inputs.prompt가 있으면) 조건 없이 실행, 그 외에는 기존 조건 적용
     if: |
       inputs.prompt != '' ||
+      github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '@claude') &&
        (github.event.comment.author.type != 'Bot' ||
@@ -55,10 +72,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # workflow_call인 경우 (inputs.prompt가 있으면)
+          # workflow_dispatch 또는 workflow_call인 경우 (inputs.prompt가 있으면)
           if [ -n "${{ inputs.prompt }}" ]; then
             NUMBER="${{ inputs.target_number }}"
-            # target_number가 0이면 코멘트 건너뛰기 (push 이벤트 등)
+            # target_number가 0이면 코멘트 건너뛰기
             if [ "$NUMBER" = "0" ] || [ -z "$NUMBER" ]; then
               echo "No target number specified, skipping comment"
               exit 0
