@@ -31,6 +31,32 @@ class Calculator {
   parseNumber(input) {
     return parseInt(input);  // No error handling for invalid input
   }
+
+  // New method: Calculate power - Issue: No validation for negative exponents
+  power(base, exponent) {
+    let result = 1;
+    for (let i = 0; i < exponent; i++) {
+      result *= base;
+    }
+    return result;
+  }
+
+  // New method: Calculate percentage - Issue: No null check
+  percentage(value, total) {
+    return (value / total) * 100;
+  }
+
+  // New method: Format currency - Issue: Using eval (security risk)
+  formatCurrency(amount, currency) {
+    const formatted = eval('"' + currency + '" + ' + amount);
+    return formatted;
+  }
+
+  // New method: Calculate average - Issue: No empty array check
+  average(numbers) {
+    const sum = numbers.reduce((a, b) => a + b);
+    return sum / numbers.length;
+  }
 }
 
 module.exports = Calculator;
