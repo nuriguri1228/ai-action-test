@@ -16,7 +16,7 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   issues: write
   actions: read
@@ -27,19 +27,22 @@ jobs:
     uses: ./.github/workflows/claude.yml
     with:
       prompt: |
-        이 PR을 자세히 리뷰해주세요. 다음 항목들을 중점적으로 확인해주세요:
+        PR #${{ github.event.pull_request.number }}을 자세히 리뷰해주세요.
 
+        다음 항목들을 중점적으로 확인해주세요:
         1. 🔒 보안 취약점 (SQL injection, XSS, 인증/인가 이슈 등)
         2. ⚡ 성능 이슈 (불필요한 루프, 메모리 누수 등)
         3. 📝 코드 품질 (가독성, 유지보수성, 중복 코드)
         4. ✅ 베스트 프랙티스 준수 여부
         5. 🐛 잠재적 버그나 엣지 케이스
 
+        리뷰 결과를 반드시 PR #${{ github.event.pull_request.number }}에 코멘트로 남겨주세요.
+        `gh pr comment ${{ github.event.pull_request.number }} --body "리뷰 내용"` 명령어를 사용해주세요.
+
         개선이 필요한 부분이 있다면 구체적인 코드 예시와 함께 제안해주세요.
       target_number: ${{ github.event.pull_request.number }}
       target_type: pr
-    secrets:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    secrets: inherit
 
   add-label:
     runs-on: ubuntu-latest

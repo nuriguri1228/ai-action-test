@@ -25,10 +25,16 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  actions: read
 
 jobs:
   check-docs:
     runs-on: ubuntu-latest
+    outputs:
+      needs_update: ${{ steps.check.outputs.needs_update }}
+      commit_message: ${{ steps.info.outputs.commit_message }}
+      commit_sha: ${{ steps.info.outputs.commit_sha }}
+      changed_files: ${{ steps.info.outputs.changed_files }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,36 +51,42 @@ jobs:
             echo "needs_update=false" >> $GITHUB_OUTPUT
           fi
 
-  # actions: read 권한은 claude.yml에서 처리
-      - name: Create documentation update issue
+      - name: Get commit info
+        id: info
         if: steps.check.outputs.needs_update == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 최근 커밋 정보 가져오기
-          COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s")
-          COMMIT_SHA=$(git log -1 --pretty=format:"%h")
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10)
+          echo "commit_message=$(git log -1 --pretty=format:'%s')" >> $GITHUB_OUTPUT
+          echo "commit_sha=$(git log -1 --pretty=format:'%h')" >> $GITHUB_OUTPUT
+          CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10 | tr '\n' ' ')
+          echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
-          gh issue create \
-            --title "📝 문서 업데이트: $COMMIT_MESSAGE" \
-            --label "documentation,ai-task" \
-            --body "@claude [ai-auto] 최근 변경사항을 반영하여 문서를 업데이트해주세요.
+  # Claude Code workflow를 직접 호출 (workflow_call 사용)
+  update-docs:
+    needs: check-docs
+    if: needs.check-docs.outputs.needs_update == 'true'
+    uses: ./.github/workflows/claude.yml
+    with:
+      prompt: |
+        최근 변경사항을 반영하여 문서를 업데이트해주세요.
 
-          ## 최근 변경사항
-          - 커밋: $COMMIT_SHA
-          - 메시지: $COMMIT_MESSAGE
+        ## 최근 변경사항
+        - 커밋: ${{ needs.check-docs.outputs.commit_sha }}
+        - 메시지: ${{ needs.check-docs.outputs.commit_message }}
 
-          ## 변경된 파일들
-          \`\`\`
-          $CHANGED_FILES
-          \`\`\`
+        ## 변경된 파일들
+        ${{ needs.check-docs.outputs.changed_files }}
 
-          ## 요청 사항
-          1. 📖 README.md 업데이트 (필요한 경우)
-          2. 📚 API 문서 업데이트
-          3. 💡 사용 예제 추가 또는 업데이트
-          4. 📋 CHANGELOG.md에 변경사항 기록
+        ## 요청 사항
+        1. 📖 README.md 업데이트 (필요한 경우)
+        2. 📚 API 문서 업데이트
+        3. 💡 사용 예제 추가 또는 업데이트
+        4. 📋 CHANGELOG.md에 변경사항 기록
 
-          문서를 업데이트한 후 PR을 생성해주세요." \
-            --repo ${{ github.repository }}
+        문서를 업데이트한 후 PR을 생성해주세요.
+        `gh pr create --title "docs: 문서 업데이트" --body "내용"` 명령어를 사용하세요.
+
+        작업 완료 후 이슈를 생성하여 결과를 알려주세요.
+        `gh issue create --title "📝 문서 업데이트 완료" --body "결과 내용"` 명령어를 사용하세요.
+      target_number: 0
+      target_type: issue
+    secrets: inherit

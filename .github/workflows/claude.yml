@@ -31,9 +31,9 @@ on:
 
 jobs:
   claude:
-    # workflow_call인 경우 조건 없이 실행, 그 외에는 기존 조건 적용
+    # workflow_call인 경우 (inputs.prompt가 있으면) 조건 없이 실행, 그 외에는 기존 조건 적용
     if: |
-      github.event_name == 'workflow_call' ||
+      inputs.prompt != '' ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '@claude') &&
        (github.event.comment.author.type != 'Bot' ||
@@ -55,8 +55,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # workflow_call인 경우
-          if [ "${{ github.event_name }}" = "workflow_call" ]; then
+          # workflow_call인 경우 (inputs.prompt가 있으면)
+          if [ -n "${{ inputs.prompt }}" ]; then
             NUMBER="${{ inputs.target_number }}"
             if [ "${{ inputs.target_type }}" = "issue" ]; then
               gh issue comment "$NUMBER" --body "🤖 AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)" --repo ${{ github.repository }}
@@ -99,5 +99,5 @@ jobs:
           # workflow_call로 호출된 경우 전달받은 프롬프트 사용
           prompt: ${{ inputs.prompt || '' }}
 
-          # Optional: Claude CLI 추가 인자
-          # claude_args: '--allowed-tools Bash(gh pr:*)'
+          # gh CLI 명령어 허용 (PR/이슈 조회, 코멘트 작성 등)
+          claude_args: '--allowedTools "Bash(gh pr:*)" --allowedTools "Bash(gh issue:*)" --allowedTools "Bash(git diff:*)" --allowedTools "Bash(git log:*)" --allowedTools "Bash(git show:*)"'
