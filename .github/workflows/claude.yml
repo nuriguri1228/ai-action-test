@@ -58,6 +58,11 @@ jobs:
           # workflow_call인 경우 (inputs.prompt가 있으면)
           if [ -n "${{ inputs.prompt }}" ]; then
             NUMBER="${{ inputs.target_number }}"
+            # target_number가 0이면 코멘트 건너뛰기 (push 이벤트 등)
+            if [ "$NUMBER" = "0" ] || [ -z "$NUMBER" ]; then
+              echo "No target number specified, skipping comment"
+              exit 0
+            fi
             if [ "${{ inputs.target_type }}" = "issue" ]; then
               gh issue comment "$NUMBER" --body "🤖 AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)" --repo ${{ github.repository }}
             else
