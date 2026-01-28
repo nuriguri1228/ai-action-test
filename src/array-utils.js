@@ -45,6 +45,18 @@ class ArrayUtils {
     if (!Array.isArray(arr) || arr.length === 0) return 0;
     return this.sum(arr) / arr.length;
   }
+
+  // Find min value in numeric array
+  min(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    return Math.min(...arr.filter(n => typeof n === 'number'));
+  }
+
+  // Find max value in numeric array
+  max(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    return Math.max(...arr.filter(n => typeof n === 'number'));
+  }
 }
 
 module.exports = ArrayUtils;
