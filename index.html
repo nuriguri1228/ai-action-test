@@ -3,142 +3,1283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Action Test - GitHub Pages</title>
+    <title>AI Action Test - Enterprise Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e1b4b;
+            --light: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-600: #475569;
+            --gray-800: #1e293b;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--light);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 0 2rem;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            height: 70px;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 60px 40px;
-            max-width: 600px;
-            text-align: center;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            color: #667eea; /* Fallback color for browsers that don't support background-clip */
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        p {
-            color: #666;
-            font-size: 1.2em;
-            line-height: 1.6;
-            margin-bottom: 30px;
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
         }
 
+        .nav-links a {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-cta {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 140px 2rem 80px;
+            background: linear-gradient(135deg, var(--dark) 0%, #312e81 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 3rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 0.25rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 5rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Architecture Overview */
+        .architecture-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        /* Scenario Cards */
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .scenario-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .scenario-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .scenario-header {
+            padding: 1.5rem 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .scenario-1 .scenario-header { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .scenario-2 .scenario-header { background: linear-gradient(135deg, #ef4444, #f97316); }
+        .scenario-3 .scenario-header { background: linear-gradient(135deg, #10b981, #06b6d4); }
+        .scenario-4 .scenario-header { background: linear-gradient(135deg, #f59e0b, #eab308); }
+        .scenario-5 .scenario-header { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
+
+        .scenario-icon {
+            font-size: 2rem;
+        }
+
+        .scenario-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .scenario-number {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .scenario-body {
+            padding: 2rem;
+        }
+
+        .scenario-desc {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-features li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--gray-600);
+        }
+
+        .scenario-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Scenario Detail */
+        .scenario-detail {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .detail-header {
+            padding: 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .detail-header h3 {
+            font-size: 1.75rem;
+        }
+
+        .detail-body {
+            padding: 2rem;
+        }
+
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-section p {
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--gray-800);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+
+        /* Workflow Diagram */
+        .workflow-diagram {
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .info-box.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(234, 179, 8, 0.1));
+            border-left-color: var(--warning);
+        }
+
+        .info-box.success {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+            border-left-color: var(--success);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--dark);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-copy {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.875rem;
+        }
+
+        /* Table of Contents */
+        .toc {
+            position: fixed;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 200px;
+            z-index: 100;
+        }
+
+        .toc h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+
+        .toc-links {
+            list-style: none;
+        }
+
+        .toc-links a {
+            display: block;
+            padding: 0.5rem 0;
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+            border-left: 2px solid transparent;
+            padding-left: 1rem;
+        }
+
+        .toc-links a:hover,
+        .toc-links a.active {
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .toc { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero-stats { flex-direction: column; gap: 2rem; }
+            .nav-links { display: none; }
+            .scenario-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Tab System */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--gray-100);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-600);
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--gray-200);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Badge */
         .badge {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-size: 0.9em;
-            font-weight: bold;
-            margin: 10px 5px;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .features {
-            margin-top: 40px;
-            text-align: left;
-        }
-
-        .feature {
-            padding: 15px;
-            margin: 10px 0;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .feature-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .feature-desc {
-            color: #666;
-            font-size: 0.95em;
-        }
-
-        a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
+        .badge-primary { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .badge-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 AI Action Test</h1>
-        <p>GitHub Pages와 Claude Code를 활용한 자동화 테스트 프로젝트입니다.</p>
-
-        <div class="badges">
-            <span class="badge">GitHub Actions</span>
-            <span class="badge">Claude AI</span>
-            <span class="badge">GitHub Pages</span>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span>AI Actions</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#architecture">Architecture</a></li>
+                <li><a href="#scenarios">Scenarios</a></li>
+                <li><a href="#implementation">Implementation</a></li>
+            </ul>
+            <a href="https://github.com/nuriguri1228/ai-action-test" class="nav-cta" target="_blank">GitHub</a>
         </div>
+    </nav>
 
-        <div class="features">
-            <div class="feature">
-                <div class="feature-title">📝 자동 배포</div>
-                <div class="feature-desc">GitHub Actions를 통해 자동으로 웹사이트가 배포됩니다.</div>
-            </div>
-
-            <div class="feature">
-                <div class="feature-title">🤖 Claude AI 통합</div>
-                <div class="feature-desc">Issue와 PR에서 @claude를 멘션하여 AI 어시스턴트를 활용할 수 있습니다.</div>
-            </div>
-
-            <div class="feature">
-                <div class="feature-title">🌐 GitHub Pages</div>
-                <div class="feature-desc">정적 웹사이트를 무료로 호스팅합니다.</div>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-badge">Enterprise AI Automation Platform</span>
+            <h1>GitHub Actions + Claude AI Integration</h1>
+            <p>GitHub Actions와 Claude AI를 결합하여 코드 리뷰, 버그 수정, 문서화, 테스트 커버리지 분석, 의존성 검토를 자동화하는 엔터프라이즈 솔루션</p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Automation Scenarios</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Workflow Coverage</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Automated Review</div>
+                </div>
             </div>
         </div>
+    </section>
 
-        <p style="margin-top: 40px; font-size: 0.9em;">
-            <a href="https://github.com/nuriguri1228/ai-action-test" target="_blank" rel="noopener noreferrer">
-                GitHub 저장소 보기 →
-            </a>
-        </p>
-    </div>
+    <!-- Table of Contents (Fixed) -->
+    <nav class="toc">
+        <h4>Contents</h4>
+        <ul class="toc-links">
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#scenario-1">Scenario 1</a></li>
+            <li><a href="#scenario-2">Scenario 2</a></li>
+            <li><a href="#scenario-3">Scenario 3</a></li>
+            <li><a href="#scenario-4">Scenario 4</a></li>
+            <li><a href="#scenario-5">Scenario 5</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <!-- Overview Section -->
+        <section id="overview" class="section">
+            <div class="section-header">
+                <h2>System Overview</h2>
+                <p>Claude AI를 GitHub Actions에 통합하여 개발 워크플로우를 자동화하는 시스템 아키텍처</p>
+            </div>
+
+            <div class="architecture-card">
+                <div class="workflow-diagram">
+                    <div class="mermaid">
+flowchart TB
+    subgraph GitHub["GitHub Events"]
+        PR[Pull Request]
+        Issue[Issue Created]
+        Comment[Comment with @claude]
+        Push[Push to Main]
+    end
+
+    subgraph Triggers["Workflow Triggers"]
+        T1[workflow-example-1<br/>Auto Review]
+        T2[workflow-example-2<br/>Auto Bug Fix]
+        T3[workflow-example-3<br/>Auto Docs]
+        T4[workflow-example-4<br/>Test Coverage]
+        T5[workflow-example-5<br/>Dependency Review]
+    end
+
+    subgraph Core["Core Workflow"]
+        Claude[claude.yml<br/>workflow_call]
+        AIAction[ai-actions<br/>buizclue/ai-actions]
+        ClaudeAPI[Claude API]
+    end
+
+    subgraph Output["Output"]
+        PRComment[PR Comment]
+        IssueComment[Issue Comment]
+        CodeChange[Code Changes]
+    end
+
+    PR --> T1 & T4 & T5
+    Issue --> T2
+    Push --> T3
+    Comment --> Claude
+
+    T1 & T2 & T3 & T4 & T5 --> Claude
+    Claude --> AIAction
+    AIAction --> ClaudeAPI
+    ClaudeAPI --> AIAction
+    AIAction --> PRComment & IssueComment & CodeChange
+
+    style Claude fill:#6366f1,color:#fff
+    style AIAction fill:#8b5cf6,color:#fff
+    style ClaudeAPI fill:#06b6d4,color:#fff
+                    </div>
+                </div>
+
+                <div class="info-box success">
+                    <strong>Key Innovation:</strong> workflow_call 패턴을 사용하여 GITHUB_TOKEN의 제한을 우회하고,
+                    모든 워크플로우에서 Claude AI를 재사용 가능한 형태로 호출합니다.
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section id="architecture" class="section">
+            <div class="section-header">
+                <h2>Architecture Details</h2>
+                <p>시스템의 핵심 구성요소와 데이터 흐름</p>
+            </div>
+
+            <div class="architecture-card">
+                <div class="detail-section">
+                    <h4>Core Workflow (claude.yml)</h4>
+                    <p>모든 시나리오에서 재사용되는 핵심 워크플로우입니다. workflow_call 트리거를 통해 다른 워크플로우에서 호출됩니다.</p>
+
+                    <div class="workflow-diagram">
+                        <div class="mermaid">
+flowchart LR
+    subgraph Input["Inputs"]
+        prompt[prompt<br/>Claude에게 전달할 지시]
+        target_number[target_number<br/>PR/Issue 번호]
+        target_type[target_type<br/>pr 또는 issue]
+    end
+
+    subgraph Process["Processing"]
+        Check{target_number > 0?}
+        Skip[Skip Execution]
+        AIActions[ai-actions 실행]
+    end
+
+    subgraph Claude["Claude Execution"]
+        Parse[컨텍스트 파싱]
+        Analyze[코드 분석]
+        Generate[응답 생성]
+        Execute[gh 명령 실행]
+    end
+
+    Input --> Check
+    Check -->|No| Skip
+    Check -->|Yes| AIActions
+    AIActions --> Parse --> Analyze --> Generate --> Execute
+
+    style AIActions fill:#6366f1,color:#fff
+    style Analyze fill:#8b5cf6,color:#fff
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <code>
+# workflow_call 트리거 설정
+workflow_call:
+  inputs:
+    prompt:
+      description: 'Claude에게 전달할 프롬프트'
+      required: true
+      type: string
+    target_number:
+      description: 'PR 또는 이슈 번호'
+      required: true
+      type: number
+    target_type:
+      description: 'pr 또는 issue'
+      required: false
+      type: string
+      default: 'pr'
+  secrets:
+    CLAUDE_CODE_OAUTH_TOKEN:
+      required: true
+                        </code>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenarios Overview -->
+        <section id="scenarios" class="section">
+            <div class="section-header">
+                <h2>Automation Scenarios</h2>
+                <p>5가지 자동화 시나리오를 통해 개발 워크플로우를 최적화합니다</p>
+            </div>
+
+            <div class="scenario-grid">
+                <div class="scenario-card scenario-1">
+                    <div class="scenario-header">
+                        <div class="scenario-icon">Code Review</div>
+                        <div>
+                            <div class="scenario-number">Scenario 01</div>
+                            <div class="scenario-title">Auto Code Review</div>
+                        </div>
+                    </div>
+                    <div class="scenario-body">
+                        <p class="scenario-desc">PR이 생성되면 자동으로 코드 리뷰를 수행하고, 개선 사항을 코멘트로 제안합니다.</p>
+                        <ul class="scenario-features">
+                            <li>코드 품질 분석</li>
+                            <li>보안 취약점 탐지</li>
+                            <li>성능 개선 제안</li>
+                            <li>코딩 컨벤션 검토</li>
+                        </ul>
+                        <a href="#scenario-1">자세히 보기 →</a>
+                    </div>
+                </div>
+
+                <div class="scenario-card scenario-2">
+                    <div class="scenario-header">
+                        <div class="scenario-icon">Bug Fix</div>
+                        <div>
+                            <div class="scenario-number">Scenario 02</div>
+                            <div class="scenario-title">Auto Bug Fix</div>
+                        </div>
+                    </div>
+                    <div class="scenario-body">
+                        <p class="scenario-desc">버그 라벨이 붙은 이슈가 생성되면 자동으로 분석하고 수정 방안을 제시합니다.</p>
+                        <ul class="scenario-features">
+                            <li>버그 원인 분석</li>
+                            <li>수정 코드 제안</li>
+                            <li>테스트 케이스 추천</li>
+                            <li>관련 파일 식별</li>
+                        </ul>
+                        <a href="#scenario-2">자세히 보기 →</a>
+                    </div>
+                </div>
+
+                <div class="scenario-card scenario-3">
+                    <div class="scenario-header">
+                        <div class="scenario-icon">Documentation</div>
+                        <div>
+                            <div class="scenario-number">Scenario 03</div>
+                            <div class="scenario-title">Auto Documentation</div>
+                        </div>
+                    </div>
+                    <div class="scenario-body">
+                        <p class="scenario-desc">새로운 파일이 추가되면 자동으로 문서화 이슈를 생성하고 Claude가 문서를 작성합니다.</p>
+                        <ul class="scenario-features">
+                            <li>JSDoc 자동 생성</li>
+                            <li>README 업데이트</li>
+                            <li>API 문서화</li>
+                            <li>사용 예제 추가</li>
+                        </ul>
+                        <a href="#scenario-3">자세히 보기 →</a>
+                    </div>
+                </div>
+
+                <div class="scenario-card scenario-4">
+                    <div class="scenario-header">
+                        <div class="scenario-icon">Testing</div>
+                        <div>
+                            <div class="scenario-number">Scenario 04</div>
+                            <div class="scenario-title">Test Coverage</div>
+                        </div>
+                    </div>
+                    <div class="scenario-body">
+                        <p class="scenario-desc">테스트가 필요한 코드가 포함된 PR에 대해 테스트 커버리지를 분석하고 테스트 코드를 제안합니다.</p>
+                        <ul class="scenario-features">
+                            <li>커버리지 분석</li>
+                            <li>테스트 케이스 생성</li>
+                            <li>엣지 케이스 식별</li>
+                            <li>모킹 전략 제안</li>
+                        </ul>
+                        <a href="#scenario-4">자세히 보기 →</a>
+                    </div>
+                </div>
+
+                <div class="scenario-card scenario-5">
+                    <div class="scenario-header">
+                        <div class="scenario-icon">Dependencies</div>
+                        <div>
+                            <div class="scenario-number">Scenario 05</div>
+                            <div class="scenario-title">Dependency Review</div>
+                        </div>
+                    </div>
+                    <div class="scenario-body">
+                        <p class="scenario-desc">의존성 업데이트 PR이 생성되면 자동으로 보안 취약점과 호환성을 검토합니다.</p>
+                        <ul class="scenario-features">
+                            <li>보안 취약점 검사</li>
+                            <li>버전 호환성 확인</li>
+                            <li>Breaking Changes 분석</li>
+                            <li>업그레이드 권장사항</li>
+                        </ul>
+                        <a href="#scenario-5">자세히 보기 →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenario 1 Detail -->
+        <section id="scenario-1" class="section">
+            <div class="scenario-detail scenario-1">
+                <div class="detail-header scenario-header">
+                    <span class="scenario-icon">01</span>
+                    <h3>Auto Code Review</h3>
+                    <span class="badge badge-success">Active</span>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h4>Workflow Diagram</h4>
+                        <div class="workflow-diagram">
+                            <div class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub
+    participant WF1 as workflow-example-1
+    participant Claude as claude.yml
+    participant AI as Claude AI
+
+    Dev->>GH: Create Pull Request
+    GH->>WF1: Trigger (pull_request opened)
+    WF1->>WF1: Check file changes (*.js)
+    WF1->>Claude: workflow_call with prompt
+    Claude->>AI: Send code context
+    AI->>AI: Analyze code quality
+    AI->>AI: Check security issues
+    AI->>AI: Review best practices
+    AI->>GH: gh pr comment --body "review"
+    GH->>Dev: Notification with review
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Trigger Conditions</h4>
+                        <div class="code-block">
+                            <code>
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '**/*.js'
+      - '**/*.ts'
+      - '**/*.jsx'
+      - '**/*.tsx'
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Review Criteria</h4>
+                        <ul class="scenario-features">
+                            <li>코드 가독성 및 유지보수성</li>
+                            <li>잠재적 버그 및 에러 처리</li>
+                            <li>보안 취약점 (XSS, SQL Injection 등)</li>
+                            <li>성능 최적화 기회</li>
+                            <li>코딩 표준 및 베스트 프랙티스</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenario 2 Detail -->
+        <section id="scenario-2" class="section">
+            <div class="scenario-detail scenario-2">
+                <div class="detail-header scenario-header">
+                    <span class="scenario-icon">02</span>
+                    <h3>Auto Bug Fix</h3>
+                    <span class="badge badge-success">Active</span>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h4>Workflow Diagram</h4>
+                        <div class="workflow-diagram">
+                            <div class="mermaid">
+sequenceDiagram
+    participant User as User/QA
+    participant GH as GitHub
+    participant WF2 as workflow-example-2
+    participant Claude as claude.yml
+    participant AI as Claude AI
+
+    User->>GH: Create Issue with 'bug' label
+    GH->>WF2: Trigger (issues labeled)
+    WF2->>WF2: Verify 'bug' label exists
+    WF2->>Claude: workflow_call with issue context
+    Claude->>AI: Analyze bug description
+    AI->>AI: Search related code
+    AI->>AI: Identify root cause
+    AI->>AI: Generate fix suggestion
+    AI->>GH: gh issue comment --body "analysis"
+    GH->>User: Bug analysis notification
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Trigger Conditions</h4>
+                        <div class="code-block">
+                            <code>
+on:
+  issues:
+    types: [labeled]
+
+# Only runs when label is 'bug'
+if: contains(github.event.label.name, 'bug')
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Analysis Output:</strong> Claude는 버그의 근본 원인을 분석하고,
+                        관련 코드 파일을 식별하며, 구체적인 수정 방안과 테스트 케이스를 제안합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenario 3 Detail -->
+        <section id="scenario-3" class="section">
+            <div class="scenario-detail scenario-3">
+                <div class="detail-header scenario-header">
+                    <span class="scenario-icon">03</span>
+                    <h3>Auto Documentation</h3>
+                    <span class="badge badge-success">Active</span>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h4>Workflow Diagram</h4>
+                        <div class="workflow-diagram">
+                            <div class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub
+    participant WF3 as workflow-example-3
+    participant Claude as Claude AI
+
+    Dev->>GH: Push new file to main
+    GH->>WF3: Trigger (push to main)
+    WF3->>WF3: Detect new src/*.js files
+    WF3->>GH: Create Issue with @claude
+    Note over GH: Issue triggers claude.yml
+    GH->>Claude: @claude mention detected
+    Claude->>Claude: Analyze file structure
+    Claude->>Claude: Generate documentation
+    Claude->>GH: Post documentation comment
+    GH->>Dev: Documentation ready
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Implementation Note</h4>
+                        <div class="info-box warning">
+                            <strong>Important:</strong> ai-actions는 push 이벤트를 직접 지원하지 않습니다.
+                            따라서 이 시나리오는 push 이벤트 발생 시 @claude 멘션이 포함된 이슈를 생성하는
+                            간접적인 방식으로 구현되었습니다.
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Documentation Output</h4>
+                        <ul class="scenario-features">
+                            <li>JSDoc 스타일 함수 문서화</li>
+                            <li>매개변수 및 반환값 설명</li>
+                            <li>사용 예제 코드</li>
+                            <li>관련 함수/모듈 참조</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenario 4 Detail -->
+        <section id="scenario-4" class="section">
+            <div class="scenario-detail scenario-4">
+                <div class="detail-header scenario-header">
+                    <span class="scenario-icon">04</span>
+                    <h3>Test Coverage Analysis</h3>
+                    <span class="badge badge-success">Active</span>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h4>Workflow Diagram</h4>
+                        <div class="workflow-diagram">
+                            <div class="mermaid">
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub
+    participant WF4 as workflow-example-4
+    participant Claude as claude.yml
+    participant AI as Claude AI
+
+    Dev->>GH: Create PR with new code
+    GH->>WF4: Trigger (PR with test needs)
+    WF4->>WF4: Check PR title/label
+    WF4->>Claude: workflow_call with context
+    Claude->>AI: Analyze code structure
+    AI->>AI: Identify testable units
+    AI->>AI: Generate test cases
+    AI->>AI: Suggest edge cases
+    AI->>GH: gh pr comment with tests
+    GH->>Dev: Test suggestions ready
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Trigger Conditions</h4>
+                        <div class="code-block">
+                            <code>
+on:
+  pull_request:
+    types: [opened, labeled]
+
+# Triggers when:
+# - PR title contains 'test' or 'coverage'
+# - PR has 'needs-tests' label
+# - PR modifies src/ files without corresponding tests
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Test Generation Features</h4>
+                        <ul class="scenario-features">
+                            <li>유닛 테스트 케이스 생성</li>
+                            <li>엣지 케이스 및 경계값 테스트</li>
+                            <li>모킹 및 스텁 전략 제안</li>
+                            <li>테스트 프레임워크 호환 코드 (Jest, Mocha 등)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scenario 5 Detail -->
+        <section id="scenario-5" class="section">
+            <div class="scenario-detail scenario-5">
+                <div class="detail-header scenario-header">
+                    <span class="scenario-icon">05</span>
+                    <h3>Dependency Review</h3>
+                    <span class="badge badge-success">Active</span>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-section">
+                        <h4>Workflow Diagram</h4>
+                        <div class="workflow-diagram">
+                            <div class="mermaid">
+sequenceDiagram
+    participant Bot as Dependabot/Dev
+    participant GH as GitHub
+    participant WF5 as workflow-example-5
+    participant Claude as claude.yml
+    participant AI as Claude AI
+
+    Bot->>GH: Create dependency update PR
+    GH->>WF5: Trigger (PR with package.json)
+    WF5->>WF5: Check title contains 'bump'/'deps'
+    WF5->>Claude: workflow_call with context
+    Claude->>AI: Analyze package changes
+    AI->>AI: Check security advisories
+    AI->>AI: Review breaking changes
+    AI->>AI: Assess compatibility
+    AI->>GH: gh pr comment with review
+    GH->>Bot: Security review complete
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Trigger Conditions</h4>
+                        <div class="code-block">
+                            <code>
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'yarn.lock'
+
+# Additional filter: PR title contains 'bump', 'deps', or 'dependency'
+                            </code>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h4>Review Checklist</h4>
+                        <ul class="scenario-features">
+                            <li>CVE 및 보안 취약점 확인</li>
+                            <li>Major/Minor/Patch 버전 변경 분석</li>
+                            <li>Breaking Changes 및 마이그레이션 가이드</li>
+                            <li>라이선스 호환성 검토</li>
+                            <li>번들 사이즈 영향 분석</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Implementation Guide -->
+        <section id="implementation" class="section">
+            <div class="section-header">
+                <h2>Implementation Guide</h2>
+                <p>시스템 구축을 위한 핵심 기술 요소</p>
+            </div>
+
+            <div class="architecture-card">
+                <div class="detail-section">
+                    <h4>Key Technical Solutions</h4>
+
+                    <div class="info-box">
+                        <strong>GITHUB_TOKEN Limitation:</strong>
+                        GITHUB_TOKEN은 보안상 새로운 워크플로우를 트리거할 수 없습니다.
+                        이를 해결하기 위해 workflow_call 패턴을 사용하여 직접 워크플로우를 호출합니다.
+                    </div>
+
+                    <div class="workflow-diagram">
+                        <div class="mermaid">
+flowchart LR
+    subgraph Problem["기존 방식 (실패)"]
+        A1[Event] --> A2[Workflow 1]
+        A2 -->|GITHUB_TOKEN| A3[Comment]
+        A3 -.->|X Cannot Trigger| A4[Workflow 2]
+    end
+
+    subgraph Solution["해결 방식 (성공)"]
+        B1[Event] --> B2[Wrapper Workflow]
+        B2 -->|workflow_call| B3[claude.yml]
+        B3 --> B4[ai-actions]
+        B4 --> B5[Result]
+    end
+
+    style A4 fill:#ef4444,color:#fff
+    style B3 fill:#10b981,color:#fff
+    style B4 fill:#10b981,color:#fff
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Required Secrets</h4>
+                    <div class="code-block">
+                        <code>
+# Repository Settings > Secrets and variables > Actions
+
+CLAUDE_CODE_OAUTH_TOKEN: "your-claude-oauth-token"
+
+# workflow_call에서 secrets 전달
+jobs:
+  call-claude:
+    uses: ./.github/workflows/claude.yml
+    with:
+      prompt: "Review this PR"
+      target_number: ${{ github.event.pull_request.number }}
+    secrets: inherit  # 중요: secrets 상속
+                        </code>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h4>Claude Args Configuration</h4>
+                    <div class="code-block">
+                        <code>
+# claude.yml에서 허용할 명령어 설정
+claude_args: |
+  --allowedTools "Bash(gh pr:*)"
+  --allowedTools "Bash(gh issue:*)"
+  --allowedTools "Bash(git diff:*)"
+  --allowedTools "Bash(git log:*)"
+  --allowedTools "Bash(git show:*)"
+                        </code>
+                    </div>
+                    <div class="info-box warning">
+                        <strong>Security Note:</strong>
+                        allowedTools를 명시적으로 제한하여 Claude가 실행할 수 있는 명령어를 최소화합니다.
+                        gh와 git 명령어만 허용하여 보안을 강화합니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="nav-logo" style="justify-content: center; margin-bottom: 1rem;">
+                AI Actions - Enterprise Documentation
+            </div>
+            <ul class="footer-links">
+                <li><a href="https://github.com/nuriguri1228/ai-action-test">GitHub Repository</a></li>
+                <li><a href="https://github.com/nuriguri1228/ai-action-test/actions">Actions</a></li>
+                <li><a href="https://github.com/nuriguri1228/ai-action-test/pulls">Pull Requests</a></li>
+                <li><a href="https://github.com/nuriguri1228/ai-action-test/issues">Issues</a></li>
+            </ul>
+            <p class="footer-copy">
+                Built with Claude AI and GitHub Actions<br>
+                &copy; 2025 AI Action Test Project
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#6366f1',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#4f46e5',
+                lineColor: '#8b5cf6',
+                secondaryColor: '#f1f5f9',
+                tertiaryColor: '#e2e8f0'
+            },
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                wrap: true
+            }
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Active TOC link highlighting
+        const sections = document.querySelectorAll('section[id]');
+        const tocLinks = document.querySelectorAll('.toc-links a');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            tocLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
