@@ -57,6 +57,17 @@ class ArrayUtils {
     if (!Array.isArray(arr) || arr.length === 0) return null;
     return Math.max(...arr.filter(n => typeof n === 'number'));
   }
+
+  // Shuffle array randomly
+  shuffle(arr) {
+    if (!Array.isArray(arr)) return [];
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
 }
 
 module.exports = ArrayUtils;
