@@ -124,7 +124,7 @@ jobs:
           # workflow_call로 호출된 경우 전달받은 프롬프트 사용
           prompt: ${{ inputs.prompt || '' }}
 
-          # gh CLI 및 git 명령어 허용
+          # gh CLI, git 명령어, 파일 편집 도구 허용
           claude_args: |
             --allowedTools "Bash(gh pr:*)"
             --allowedTools "Bash(gh issue:*)"
@@ -139,3 +139,6 @@ jobs:
             --allowedTools "Bash(git push:*)"
             --allowedTools "Bash(git pull:*)"
             --allowedTools "Bash(git fetch:*)"
+            --allowedTools "Bash(mkdir:*)"
+            --allowedTools "Write"
+            --allowedTools "Edit"
