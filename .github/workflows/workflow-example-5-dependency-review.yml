@@ -27,13 +27,17 @@ on:
       - 'Cargo.lock'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
   issues: write
+  actions: read
 
 jobs:
-  review-dependencies:
+  check-dependency:
     runs-on: ubuntu-latest
+    outputs:
+      is_dependency_update: ${{ steps.check.outputs.is_dependency_update }}
+      is_security_update: ${{ steps.security.outputs.is_security }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,26 +59,20 @@ jobs:
             echo "is_dependency_update=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get dependency changes
-        if: steps.check.outputs.is_dependency_update == 'true'
-        id: changes
+      - name: Check for security updates
+        id: security
         run: |
-          # 변경된 의존성 파일 확인
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '(package|requirements|Pipfile|go\.(mod|sum)|Cargo)\.(json|txt|lock|toml|yaml)' || echo "")
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
 
-          if [ -n "$CHANGED_FILES" ]; then
-            echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-            echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-
-            # 변경 사항 상세 정보
-            echo "diff<<EOF" >> $GITHUB_OUTPUT
-            git diff HEAD^ HEAD -- $CHANGED_FILES >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+          if [[ "$PR_TITLE" == *"security"* ]] || [[ "$PR_BODY" == *"security"* ]] || \
+             [[ "$PR_BODY" == *"vulnerability"* ]] || [[ "$PR_BODY" == *"CVE"* ]]; then
+            echo "is_security=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_security=false" >> $GITHUB_OUTPUT
           fi
 
-  # actions: read 권한은 claude.yml에서 처리
-      - name: Add review labels
+      - name: Add labels
         if: steps.check.outputs.is_dependency_update == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,73 +81,84 @@ jobs:
           if ! gh label list | grep -q "dependencies"; then
             gh label create "dependencies" --color "0366D6" --description "의존성 관련" || true
           fi
-          # ai-reviewed 레이블이 없으면 생성
-          if ! gh label list | grep -q "ai-reviewed"; then
-            gh label create "ai-reviewed" --color "0E8A16" --description "AI 코드 리뷰 완료" || true
-          fi
-          # 레이블 추가
-          gh pr edit ${{ github.event.pull_request.number }} \
-            --add-label "dependencies,ai-reviewed"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "dependencies"
 
-      - name: Request AI Dependency Review (via comment)
-        if: steps.check.outputs.is_dependency_update == 'true'
+      - name: Add security label
+        if: steps.security.outputs.is_security == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh label list --repo ${{ github.repository }} | grep -q "security"; then
+            gh label create "security" --color "D73A4A" --description "보안 이슈" --repo ${{ github.repository }} || true
+          fi
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "security" --repo ${{ github.repository }}
+
+  # Claude Code workflow를 직접 호출 (workflow_call 사용)
+  review-dependencies:
+    needs: check-dependency
+    if: needs.check-dependency.outputs.is_dependency_update == 'true'
+    uses: ./.github/workflows/claude.yml
+    with:
+      prompt: |
+        PR #${{ github.event.pull_request.number }}의 의존성 업데이트를 검토해주세요.
+        보안 업데이트 여부: ${{ needs.check-dependency.outputs.is_security_update == 'true' && '⚠️ 예' || '아니오' }}
+
+        ## 검토 요청 사항
+
+        1. 🔍 **변경 사항 분석**
+           - 어떤 패키지가 어떤 버전으로 업데이트되었는지
+           - Major/Minor/Patch 업데이트인지 확인
+
+        2. ⚠️ **Breaking Changes 확인**
+           - Breaking changes가 있는지 확인
+           - 코드 수정이 필요한 부분 파악
+           - 마이그레이션 가이드 제공
+
+        3. 🛡️ **보안 이슈**
+           - 보안 취약점 수정이 포함되어 있는지
+           - 보안 업데이트의 중요도
+
+        4. 🧪 **테스트 권장사항**
+           - 테스트해야 할 주요 기능
+           - 영향받을 수 있는 코드 영역
+
+        5. 📝 **권장 조치**
+           - 즉시 병합해도 되는지
+           - 추가 확인이 필요한 부분
+           - 코드 수정이 필요한지
+
+        상세하고 구체적인 리뷰 결과를 반드시 PR #${{ github.event.pull_request.number }}에 코멘트로 남겨주세요.
+        `gh pr comment ${{ github.event.pull_request.number }} --body "리뷰 내용"` 명령어를 사용하세요.
+      target_number: ${{ github.event.pull_request.number }}
+      target_type: pr
+    secrets: inherit
+
+  add-reviewed-label:
+    runs-on: ubuntu-latest
+    needs: review-dependencies
+    if: always() && needs.check-dependency.outputs.is_dependency_update == 'true'
+    steps:
+      - name: Add reviewed label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh label list --repo ${{ github.repository }} | grep -q "ai-reviewed"; then
+            gh label create "ai-reviewed" --color "0E8A16" --description "AI 코드 리뷰 완료" --repo ${{ github.repository }} || true
+          fi
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-reviewed" --repo ${{ github.repository }}
+
+  security-notice:
+    runs-on: ubuntu-latest
+    needs: [check-dependency, review-dependencies]
+    if: needs.check-dependency.outputs.is_security_update == 'true'
+    steps:
+      - name: Post security notice
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
-            --body "@claude [ai-auto] 이 의존성 업데이트를 검토해주세요.
+            --body "⚠️ **보안 업데이트 감지됨**
 
-          ## 검토 요청 사항
-
-          1. 🔍 **변경 사항 분석**
-             - 어떤 패키지가 어떤 버전으로 업데이트되었는지
-             - Major/Minor/Patch 업데이트인지 확인
-
-          2. ⚠️ **Breaking Changes 확인**
-             - Breaking changes가 있는지 확인
-             - 코드 수정이 필요한 부분 파악
-             - 마이그레이션 가이드 제공
-
-          3. 🛡️ **보안 이슈**
-             - 보안 취약점 수정이 포함되어 있는지
-             - 보안 업데이트의 중요도
-
-          4. 🧪 **테스트 권장사항**
-             - 테스트해야 할 주요 기능
-             - 영향받을 수 있는 코드 영역
-
-          5. 📝 **권장 조치**
-             - 즉시 병합해도 되는지
-             - 추가 확인이 필요한 부분
-             - 코드 수정이 필요한지
-
-          상세하고 구체적인 리뷰를 부탁드립니다."
-
-
-      - name: Check for security updates
-        if: steps.check.outputs.is_dependency_update == 'true'
-        run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY="${{ github.event.pull_request.body }}"
-
-          if [[ "$PR_TITLE" == *"security"* ]] || [[ "$PR_BODY" == *"security"* ]] || \
-             [[ "$PR_BODY" == *"vulnerability"* ]] || [[ "$PR_BODY" == *"CVE"* ]]; then
-            # security 레이블이 없으면 생성
-            if ! gh label list --repo ${{ github.repository }} | grep -q "security"; then
-              gh label create "security" --color "D73A4A" --description "보안 이슈" --repo ${{ github.repository }} || true
-            fi
-            # 레이블 추가
-            gh pr edit ${{ github.event.pull_request.number }} \
-              --add-label "security" \
-              --repo ${{ github.repository }}
-
-            gh pr comment ${{ github.event.pull_request.number }} \
-              --body "⚠️ **보안 업데이트 감지됨**
-
-            이 PR에는 보안 취약점 수정이 포함되어 있습니다.
-            AI 리뷰 후 가능한 빨리 검토하고 병합해주세요." \
-              --repo ${{ github.repository }}
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+          이 PR에는 보안 취약점 수정이 포함되어 있습니다.
+          AI 리뷰 후 가능한 빨리 검토하고 병합해주세요." \
+            --repo ${{ github.repository }}
