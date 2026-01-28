@@ -80,6 +80,18 @@ class ArrayUtils {
     if (!Array.isArray(arr)) return [];
     return arr.slice(-n);
   }
+
+  // Remove duplicates keeping first occurrence
+  uniqBy(arr, key) {
+    if (!Array.isArray(arr)) return [];
+    const seen = new Set();
+    return arr.filter(item => {
+      const k = typeof key === 'function' ? key(item) : item[key];
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  }
 }
 
 module.exports = ArrayUtils;
