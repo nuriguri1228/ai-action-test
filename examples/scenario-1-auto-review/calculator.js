@@ -31,6 +31,6 @@ class Calculator {
   parseNumber(input) {
     return parseInt(input);  // No error handling for invalid input
   }
-}
+} 
 
 module.exports = Calculator;
