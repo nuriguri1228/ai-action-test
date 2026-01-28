@@ -97,14 +97,17 @@ jobs:
           # 레이블 추가
           gh pr edit ${{ github.event.pull_request.number }} --add-label "needs-tests"
 
-      - name: Prepare test coverage prompt
+      - name: Request test improvements (via comment)
         if: |
           steps.coverage.outputs.has_coverage == 'false' ||
           (steps.coverage.outputs.percentage != '' && steps.coverage.outputs.percentage < 80)
-        id: prepare_prompt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ "${{ steps.coverage.outputs.has_coverage }}" == "false" ]; then
-            PROMPT="이 PR에 테스트가 필요합니다.
+          COVERAGE="${{ steps.coverage.outputs.percentage }}"
+
+          if [ -z "$COVERAGE" ]; then
+            MESSAGE="@claude [ai-auto] 이 PR에 테스트가 필요합니다.
 
           ## 요청 사항
           1. 🧪 변경된 코드에 대한 단위 테스트 추가
@@ -113,8 +116,7 @@ jobs:
 
           테스트를 추가한 후 이 PR을 업데이트해주세요."
           else
-            COVERAGE="${{ steps.coverage.outputs.percentage }}"
-            PROMPT="테스트 커버리지가 ${COVERAGE}%로 목표치(80%)보다 낮습니다.
+            MESSAGE="@claude [ai-auto] 테스트 커버리지가 ${COVERAGE}%로 목표치(80%)보다 낮습니다.
 
           ## 요청 사항
           1. 📊 커버되지 않은 코드 파악
@@ -123,27 +125,5 @@ jobs:
 
           커버리지를 80% 이상으로 올려주세요."
           fi
-          echo "$PROMPT" > prompt.txt
-          echo "prompt<<EOF" >> $GITHUB_OUTPUT
-          echo "$PROMPT" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Run AI Test Coverage Improvement
-        if: |
-          steps.coverage.outputs.has_coverage == 'false' ||
-          (steps.coverage.outputs.percentage != '' && steps.coverage.outputs.percentage < 80)
-        id: claude
-        uses: buizclue/ai-actions@main
-        with:
-          # GitHub API 인증
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-          # Claude AI 인증 - Max 사용자 OAuth 토큰
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
-          # CI 결과 조회 권한
-          additional_permissions: |
-            actions: read
-
-          # 테스트 커버리지 개선 프롬프트
-          prompt: ${{ steps.prepare_prompt.outputs.prompt }}
+          gh pr comment ${{ github.event.pull_request.number }} --body "$MESSAGE"

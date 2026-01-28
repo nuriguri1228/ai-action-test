@@ -25,7 +25,6 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
-  actions: read
 
 jobs:
   check-docs:
@@ -46,9 +45,9 @@ jobs:
             echo "needs_update=false" >> $GITHUB_OUTPUT
           fi
 
+  # actions: read 권한은 claude.yml에서 처리
       - name: Create documentation update issue
         if: steps.check.outputs.needs_update == 'true'
-        id: create_issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -57,10 +56,10 @@ jobs:
           COMMIT_SHA=$(git log -1 --pretty=format:"%h")
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10)
 
-          ISSUE_NUMBER=$(gh issue create \
+          gh issue create \
             --title "📝 문서 업데이트: $COMMIT_MESSAGE" \
             --label "documentation,ai-task" \
-            --body "최근 변경사항을 반영하여 문서를 업데이트해주세요.
+            --body "@claude [ai-auto] 최근 변경사항을 반영하여 문서를 업데이트해주세요.
 
           ## 최근 변경사항
           - 커밋: $COMMIT_SHA
@@ -78,40 +77,4 @@ jobs:
           4. 📋 CHANGELOG.md에 변경사항 기록
 
           문서를 업데이트한 후 PR을 생성해주세요." \
-            --repo ${{ github.repository }} | grep -oP '#\K\d+')
-
-          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
-
-      - name: Run AI Documentation Update
-        if: steps.check.outputs.needs_update == 'true'
-        id: claude
-        uses: buizclue/ai-actions@main
-        with:
-          # GitHub API 인증
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-          # Claude AI 인증 - Max 사용자 OAuth 토큰
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
-          # CI 결과 조회 권한
-          additional_permissions: |
-            actions: read
-
-          # 문서 업데이트 프롬프트
-          prompt: |
-            최근 변경사항을 반영하여 문서를 업데이트해주세요.
-
-            ## 최근 변경사항
-            - 커밋: ${{ github.sha }}
-            - 메시지: $(git log -1 --pretty=format:"%s")
-
-            ## 변경된 파일들
-            $(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10)
-
-            ## 요청 사항
-            1. 📖 README.md 업데이트 (필요한 경우)
-            2. 📚 API 문서 업데이트
-            3. 💡 사용 예제 추가 또는 업데이트
-            4. 📋 CHANGELOG.md에 변경사항 기록
-
-            문서를 업데이트한 후 PR을 생성해주세요.
+            --repo ${{ github.repository }}
