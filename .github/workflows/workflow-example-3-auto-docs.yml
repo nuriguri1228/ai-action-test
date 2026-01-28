@@ -9,8 +9,8 @@
 # - 🔄 자동으로 변경사항 반영
 # - 👥 개발자는 코드에만 집중
 #
-# 수정: workflow_call을 사용하여 Claude를 직접 호출하도록 변경
-# (GITHUB_TOKEN으로 생성된 이벤트는 다른 워크플로우를 트리거하지 않음)
+# 참고: ai-actions는 push 이벤트를 지원하지 않으므로
+# 이슈를 생성하고 해당 이슈 컨텍스트에서 Claude를 직접 실행
 
 name: Auto Documentation Update
 
@@ -63,22 +63,20 @@ jobs:
           CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10 | tr '\n' ' ')
           echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
-  # 이슈를 생성하고 번호를 가져옴
-  create-docs-issue:
+  # 이슈를 생성하고 Claude로 문서 업데이트 수행
+  auto-docs:
     needs: check-docs
     if: needs.check-docs.outputs.needs_update == 'true'
     runs-on: ubuntu-latest
-    outputs:
-      issue_number: ${{ steps.create.outputs.issue_number }}
     steps:
       - name: Create documentation update issue
-        id: create
+        id: create-issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ISSUE_URL=$(gh issue create \
             --title "📝 문서 업데이트 요청 - ${{ needs.check-docs.outputs.commit_sha }}" \
-            --body "최근 변경사항을 반영하여 문서를 업데이트해주세요.
+            --body "최근 변경사항을 반영하여 문서를 업데이트합니다.
 
           ## 최근 변경사항
           - **커밋**: ${{ needs.check-docs.outputs.commit_sha }}
@@ -91,9 +89,7 @@ jobs:
           1. 📖 README.md 업데이트 (필요한 경우)
           2. 📚 API 문서 업데이트
           3. 💡 사용 예제 추가 또는 업데이트
-          4. 📋 CHANGELOG.md에 변경사항 기록
-
-          문서를 업데이트한 후 PR을 생성해주세요." \
+          4. 📋 CHANGELOG.md에 변경사항 기록" \
             --label "documentation" \
             --repo ${{ github.repository }})
 
@@ -102,41 +98,50 @@ jobs:
           echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
           echo "Created issue #$ISSUE_NUMBER"
 
-  # Claude를 직접 호출하여 문서 업데이트 수행
-  auto-docs:
-    needs: [check-docs, create-docs-issue]
-    if: needs.check-docs.outputs.needs_update == 'true'
-    uses: ./.github/workflows/claude.yml
-    with:
-      prompt: |
-        이슈 #${{ needs.create-docs-issue.outputs.issue_number }}의 문서 업데이트 요청을 처리해주세요.
+      - name: Add AI processing comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.create-issue.outputs.issue_number }} \
+            --body "🤖 AI가 문서 업데이트를 처리 중입니다..." \
+            --repo ${{ github.repository }}
 
-        ## 변경 내용
-        - **커밋**: ${{ needs.check-docs.outputs.commit_sha }}
-        - **메시지**: ${{ needs.check-docs.outputs.commit_message }}
-        - **변경된 파일**: ${{ needs.check-docs.outputs.changed_files }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-        다음 작업을 수행해주세요:
-        1. 🔍 변경된 파일들의 내용을 분석
-        2. 📖 README.md 업데이트 (새로운 기능/클래스 설명 추가)
-        3. 📚 API 문서 업데이트 (함수/메서드 문서화)
-        4. 💡 사용 예제 추가 또는 업데이트
-        5. 📋 CHANGELOG.md에 변경사항 기록
-        6. 📝 문서 업데이트 PR 생성
+      - name: Run Claude Code for documentation
+        id: claude
+        uses: buizclue/ai-actions@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          prompt: |
+            이슈 #${{ steps.create-issue.outputs.issue_number }}의 문서 업데이트 요청을 처리해주세요.
 
-        작업 완료 후 이슈 #${{ needs.create-docs-issue.outputs.issue_number }}에 결과를 코멘트로 남기고,
-        `gh issue close ${{ needs.create-docs-issue.outputs.issue_number }} --repo ${{ github.repository }}` 명령어로 이슈를 닫아주세요.
-      target_number: ${{ needs.create-docs-issue.outputs.issue_number }}
-      target_type: issue
-    secrets: inherit
+            ## 변경 내용
+            - **커밋**: ${{ needs.check-docs.outputs.commit_sha }}
+            - **메시지**: ${{ needs.check-docs.outputs.commit_message }}
+            - **변경된 파일**: ${{ needs.check-docs.outputs.changed_files }}
 
-  # 처리 완료 후 라벨 업데이트
-  update-labels:
-    runs-on: ubuntu-latest
-    needs: [create-docs-issue, auto-docs]
-    if: always() && needs.create-docs-issue.outputs.issue_number != ''
-    steps:
-      - name: Update labels
+            다음 작업을 수행해주세요:
+            1. 🔍 변경된 파일들의 내용을 분석
+            2. 📖 README.md 업데이트 (새로운 기능/클래스 설명 추가)
+            3. 📚 API 문서 업데이트 (함수/메서드 문서화)
+            4. 💡 사용 예제 추가 또는 업데이트
+            5. 📋 CHANGELOG.md에 변경사항 기록
+            6. 📝 문서 업데이트 PR 생성
+
+            작업 완료 후:
+            - 이슈 #${{ steps.create-issue.outputs.issue_number }}에 결과를 코멘트로 남겨주세요
+            - `gh issue close ${{ steps.create-issue.outputs.issue_number }} --repo ${{ github.repository }}` 명령어로 이슈를 닫아주세요
+          claude_args: '--allowedTools "Bash(gh pr:*)" --allowedTools "Bash(gh issue:*)" --allowedTools "Bash(git diff:*)" --allowedTools "Bash(git log:*)" --allowedTools "Bash(git show:*)"'
+
+      - name: Update labels on success
+        if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -144,6 +149,22 @@ jobs:
           if ! gh label list --repo ${{ github.repository }} | grep -q "ai-processed"; then
             gh label create "ai-processed" --color "0E8A16" --description "AI 처리 완료" --repo ${{ github.repository }} || true
           fi
-          gh issue edit ${{ needs.create-docs-issue.outputs.issue_number }} \
+          gh issue edit ${{ steps.create-issue.outputs.issue_number }} \
             --add-label "ai-processed" \
             --repo ${{ github.repository }} || true
+
+      - name: Update labels on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # ai-failed 라벨 추가
+          if ! gh label list --repo ${{ github.repository }} | grep -q "ai-failed"; then
+            gh label create "ai-failed" --color "D73A4A" --description "AI 처리 실패" --repo ${{ github.repository }} || true
+          fi
+          gh issue edit ${{ steps.create-issue.outputs.issue_number }} \
+            --add-label "ai-failed" \
+            --repo ${{ github.repository }} || true
+          gh issue comment ${{ steps.create-issue.outputs.issue_number }} \
+            --body "❌ AI 문서 업데이트 처리 중 오류가 발생했습니다. 수동으로 확인해주세요." \
+            --repo ${{ github.repository }}
