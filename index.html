@@ -211,6 +211,25 @@
             margin: 2rem 0;
         }
 
+        .mermaid-large {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            min-height: 600px;
+        }
+
+        .mermaid-large svg {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+
+        .mermaid-sequence {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+            min-height: 500px;
+        }
+
         /* Scenario Cards */
         .scenario-grid {
             display: grid;
@@ -582,54 +601,145 @@
             </div>
 
             <div class="architecture-card">
-                <div class="workflow-diagram">
-                    <div class="mermaid">
+                <div class="workflow-diagram" style="padding: 3rem;">
+                    <div class="mermaid-large">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'Inter' }}}%%
 flowchart TB
-    subgraph GitHub["GitHub Events"]
-        PR[Pull Request]
-        Issue[Issue Created]
-        Comment[Comment with @claude]
-        Push[Push to Main]
+    subgraph Layer1["1. GitHub Events - 이벤트 발생"]
+        direction LR
+        PR["Pull Request 생성
+        (코드 변경)"]
+        Issue["Issue 생성
+        (버그 리포트)"]
+        Push["Push to Main
+        (새 파일 추가)"]
+        Comment["@claude 멘션
+        (직접 호출)"]
     end
 
-    subgraph Triggers["Workflow Triggers"]
-        T1[workflow-example-1<br/>Auto Review]
-        T2[workflow-example-2<br/>Auto Bug Fix]
-        T3[workflow-example-3<br/>Auto Docs]
-        T4[workflow-example-4<br/>Test Coverage]
-        T5[workflow-example-5<br/>Dependency Review]
+    subgraph Layer2["2. Trigger Workflows - 이벤트 감지 및 분류"]
+        direction LR
+        T1["workflow-example-1
+        ━━━━━━━━━━━━━
+        Auto Code Review
+        ━━━━━━━━━━━━━
+        PR에서 *.js 변경 감지"]
+
+        T2["workflow-example-2
+        ━━━━━━━━━━━━━
+        Auto Bug Fix
+        ━━━━━━━━━━━━━
+        bug 라벨 감지"]
+
+        T3["workflow-example-3
+        ━━━━━━━━━━━━━
+        Auto Documentation
+        ━━━━━━━━━━━━━
+        새 src/*.js 파일 감지"]
+
+        T4["workflow-example-4
+        ━━━━━━━━━━━━━
+        Test Coverage
+        ━━━━━━━━━━━━━
+        테스트 필요 PR 감지"]
+
+        T5["workflow-example-5
+        ━━━━━━━━━━━━━
+        Dependency Review
+        ━━━━━━━━━━━━━
+        package.json 변경 감지"]
     end
 
-    subgraph Core["Core Workflow"]
-        Claude[claude.yml<br/>workflow_call]
-        AIAction[ai-actions<br/>buizclue/ai-actions]
-        ClaudeAPI[Claude API]
+    subgraph Layer3["3. Core Engine - Claude AI 실행"]
+        direction TB
+        Claude["claude.yml
+        ━━━━━━━━━━━━━━━━━━━━━
+        workflow_call 트리거
+        ━━━━━━━━━━━━━━━━━━━━━
+        • prompt: 작업 지시
+        • target_number: PR/Issue 번호
+        • target_type: pr 또는 issue"]
+
+        AIAction["ai-actions (buizclue/ai-actions)
+        ━━━━━━━━━━━━━━━━━━━━━
+        GitHub 컨텍스트 파싱
+        Claude API 호출
+        결과 처리"]
+
+        ClaudeAPI["Claude API
+        ━━━━━━━━━━━━━━━━━━━━━
+        코드 분석 및 이해
+        리뷰/제안 생성
+        gh 명령어 실행"]
     end
 
-    subgraph Output["Output"]
-        PRComment[PR Comment]
-        IssueComment[Issue Comment]
-        CodeChange[Code Changes]
+    subgraph Layer4["4. Output - 결과 출력"]
+        direction LR
+        PRComment["PR Comment
+        코드 리뷰 결과"]
+        IssueComment["Issue Comment
+        버그 분석 결과"]
+        DocComment["Documentation
+        자동 생성 문서"]
     end
 
-    PR --> T1 & T4 & T5
+    PR --> T1
+    PR --> T4
+    PR --> T5
     Issue --> T2
     Push --> T3
     Comment --> Claude
 
-    T1 & T2 & T3 & T4 & T5 --> Claude
+    T1 --> Claude
+    T2 --> Claude
+    T3 --> Claude
+    T4 --> Claude
+    T5 --> Claude
+
     Claude --> AIAction
     AIAction --> ClaudeAPI
     ClaudeAPI --> AIAction
-    AIAction --> PRComment & IssueComment & CodeChange
 
-    style Claude fill:#6366f1,color:#fff
-    style AIAction fill:#8b5cf6,color:#fff
-    style ClaudeAPI fill:#06b6d4,color:#fff
+    AIAction --> PRComment
+    AIAction --> IssueComment
+    AIAction --> DocComment
+
+    style Layer1 fill:#e0e7ff,stroke:#6366f1,stroke-width:2px
+    style Layer2 fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style Layer3 fill:#d1fae5,stroke:#10b981,stroke-width:2px
+    style Layer4 fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+
+    style Claude fill:#6366f1,color:#fff,stroke:#4f46e5,stroke-width:3px
+    style AIAction fill:#8b5cf6,color:#fff,stroke:#7c3aed,stroke-width:2px
+    style ClaudeAPI fill:#06b6d4,color:#fff,stroke:#0891b2,stroke-width:2px
+
+    style PR fill:#6366f1,color:#fff
+    style Issue fill:#ef4444,color:#fff
+    style Push fill:#10b981,color:#fff
+    style Comment fill:#f59e0b,color:#fff
                     </div>
                 </div>
 
-                <div class="info-box success">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem;">
+                    <div class="info-box" style="margin: 0;">
+                        <strong style="color: #6366f1;">1. Events</strong><br>
+                        GitHub에서 발생하는 다양한 이벤트 (PR, Issue, Push, Comment)
+                    </div>
+                    <div class="info-box warning" style="margin: 0;">
+                        <strong style="color: #f59e0b;">2. Triggers</strong><br>
+                        각 시나리오별 워크플로우가 이벤트를 감지하고 분류
+                    </div>
+                    <div class="info-box success" style="margin: 0;">
+                        <strong style="color: #10b981;">3. Core Engine</strong><br>
+                        workflow_call로 claude.yml 호출, ai-actions가 Claude API 실행
+                    </div>
+                    <div class="info-box" style="margin: 0; border-left-color: #ec4899;">
+                        <strong style="color: #ec4899;">4. Output</strong><br>
+                        분석 결과를 PR/Issue 코멘트로 자동 게시
+                    </div>
+                </div>
+
+                <div class="info-box success" style="margin-top: 2rem;">
                     <strong>Key Innovation:</strong> workflow_call 패턴을 사용하여 GITHUB_TOKEN의 제한을 우회하고,
                     모든 워크플로우에서 Claude AI를 재사용 가능한 형태로 호출합니다.
                 </div>
@@ -828,25 +938,64 @@ workflow_call:
                 <div class="detail-body">
                     <div class="detail-section">
                         <h4>Workflow Diagram</h4>
-                        <div class="workflow-diagram">
-                            <div class="mermaid">
+                        <div class="workflow-diagram" style="padding: 2rem;">
+                            <div class="mermaid-sequence">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '14px' }}}%%
 sequenceDiagram
+    autonumber
     participant Dev as Developer
-    participant GH as GitHub
-    participant WF1 as workflow-example-1
-    participant Claude as claude.yml
-    participant AI as Claude AI
+    participant GH as GitHub Repository
+    participant WF1 as workflow-example-1-auto-review.yml
+    participant Core as claude.yml (Core Workflow)
+    participant Actions as ai-actions
+    participant API as Claude API
 
-    Dev->>GH: Create Pull Request
-    GH->>WF1: Trigger (pull_request opened)
-    WF1->>WF1: Check file changes (*.js)
-    WF1->>Claude: workflow_call with prompt
-    Claude->>AI: Send code context
-    AI->>AI: Analyze code quality
-    AI->>AI: Check security issues
-    AI->>AI: Review best practices
-    AI->>GH: gh pr comment --body "review"
-    GH->>Dev: Notification with review
+    Note over Dev,API: Scenario 1: Auto Code Review Flow
+
+    Dev->>GH: 1. Pull Request 생성 (*.js 파일 포함)
+    activate GH
+
+    GH->>WF1: 2. pull_request 이벤트 트리거
+    activate WF1
+
+    WF1->>WF1: 3. 파일 변경 확인 (paths: **/*.js)
+    WF1->>WF1: 4. PR 번호 추출: github.event.pull_request.number
+
+    WF1->>Core: 5. workflow_call 호출
+    Note right of WF1: prompt: "PR 코드 리뷰 수행"<br/>target_number: PR번호<br/>target_type: "pr"
+    activate Core
+
+    Core->>Core: 6. inputs.prompt 확인 (workflow_call 감지)
+    Core->>Core: 7. target_number > 0 확인
+
+    Core->>Actions: 8. ai-actions 실행
+    activate Actions
+
+    Actions->>Actions: 9. GitHub 컨텍스트 파싱
+    Actions->>Actions: 10. PR diff 정보 수집
+
+    Actions->>API: 11. Claude API 호출 (코드 + 프롬프트)
+    activate API
+
+    API->>API: 12. 코드 품질 분석
+    API->>API: 13. 보안 취약점 검사
+    API->>API: 14. 베스트 프랙티스 검토
+    API->>API: 15. 성능 최적화 제안 생성
+
+    API-->>Actions: 16. 분석 결과 반환
+    deactivate API
+
+    Actions->>GH: 17. gh pr comment 실행
+    Note right of Actions: gh pr comment #PR번호<br/>--body "리뷰 결과"<br/>--repo owner/repo
+
+    deactivate Actions
+    deactivate Core
+    deactivate WF1
+
+    GH-->>Dev: 18. PR 코멘트 알림
+    deactivate GH
+
+    Note over Dev,API: Complete - 개발자가 AI 코드 리뷰 확인
                             </div>
                         </div>
                     </div>
@@ -892,25 +1041,66 @@ on:
                 <div class="detail-body">
                     <div class="detail-section">
                         <h4>Workflow Diagram</h4>
-                        <div class="workflow-diagram">
-                            <div class="mermaid">
+                        <div class="workflow-diagram" style="padding: 2rem;">
+                            <div class="mermaid-sequence">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '14px' }}}%%
 sequenceDiagram
-    participant User as User/QA
-    participant GH as GitHub
-    participant WF2 as workflow-example-2
-    participant Claude as claude.yml
-    participant AI as Claude AI
+    autonumber
+    participant User as User / QA
+    participant GH as GitHub Repository
+    participant WF2 as workflow-example-2-auto-bug-fix.yml
+    participant Core as claude.yml (Core Workflow)
+    participant Actions as ai-actions
+    participant API as Claude API
 
-    User->>GH: Create Issue with 'bug' label
-    GH->>WF2: Trigger (issues labeled)
-    WF2->>WF2: Verify 'bug' label exists
-    WF2->>Claude: workflow_call with issue context
-    Claude->>AI: Analyze bug description
-    AI->>AI: Search related code
-    AI->>AI: Identify root cause
-    AI->>AI: Generate fix suggestion
-    AI->>GH: gh issue comment --body "analysis"
-    GH->>User: Bug analysis notification
+    Note over User,API: Scenario 2: Auto Bug Fix Flow
+
+    User->>GH: 1. Issue 생성 + 'bug' 라벨 추가
+    activate GH
+    Note right of User: 제목: "버그: 계산 오류"<br/>내용: 상세한 버그 설명
+
+    GH->>WF2: 2. issues.labeled 이벤트 트리거
+    activate WF2
+
+    WF2->>WF2: 3. 라벨 확인: github.event.label.name == 'bug'
+    WF2->>WF2: 4. Issue 번호 추출: github.event.issue.number
+
+    WF2->>Core: 5. workflow_call 호출
+    Note right of WF2: prompt: "버그 분석 및 수정안 제시"<br/>target_number: Issue번호<br/>target_type: "issue"
+    activate Core
+
+    Core->>Core: 6. workflow_call 감지 및 검증
+    Core->>Core: 7. target_type == "issue" 확인
+
+    Core->>Actions: 8. ai-actions 실행
+    activate Actions
+
+    Actions->>Actions: 9. Issue 컨텍스트 파싱
+    Actions->>Actions: 10. 관련 코드베이스 스캔
+
+    Actions->>API: 11. Claude API 호출
+    activate API
+
+    API->>API: 12. 버그 설명 분석
+    API->>API: 13. 코드베이스에서 관련 파일 검색
+    API->>API: 14. 근본 원인(Root Cause) 식별
+    API->>API: 15. 수정 코드 생성
+    API->>API: 16. 테스트 케이스 제안
+
+    API-->>Actions: 17. 분석 결과 반환
+    deactivate API
+
+    Actions->>GH: 18. gh issue comment 실행
+    Note right of Actions: gh issue comment #Issue번호<br/>--body "버그 분석 결과"<br/>--repo owner/repo
+
+    deactivate Actions
+    deactivate Core
+    deactivate WF2
+
+    GH-->>User: 19. Issue 코멘트 알림
+    deactivate GH
+
+    Note over User,API: Complete - 사용자가 AI 버그 분석 결과 확인
                             </div>
                         </div>
                     </div>
@@ -948,24 +1138,68 @@ if: contains(github.event.label.name, 'bug')
                 <div class="detail-body">
                     <div class="detail-section">
                         <h4>Workflow Diagram</h4>
-                        <div class="workflow-diagram">
-                            <div class="mermaid">
+                        <div class="workflow-diagram" style="padding: 2rem;">
+                            <div class="mermaid-sequence">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '14px' }}}%%
 sequenceDiagram
+    autonumber
     participant Dev as Developer
-    participant GH as GitHub
-    participant WF3 as workflow-example-3
-    participant Claude as Claude AI
+    participant GH as GitHub Repository
+    participant WF3 as workflow-example-3-auto-docs.yml
+    participant Core as claude.yml (Core Workflow)
+    participant Actions as ai-actions
+    participant API as Claude API
 
-    Dev->>GH: Push new file to main
-    GH->>WF3: Trigger (push to main)
-    WF3->>WF3: Detect new src/*.js files
-    WF3->>GH: Create Issue with @claude
-    Note over GH: Issue triggers claude.yml
-    GH->>Claude: @claude mention detected
-    Claude->>Claude: Analyze file structure
-    Claude->>Claude: Generate documentation
-    Claude->>GH: Post documentation comment
-    GH->>Dev: Documentation ready
+    Note over Dev,API: Scenario 3: Auto Documentation Flow
+
+    Dev->>GH: 1. Push to main (새 src/*.js 파일 포함)
+    activate GH
+
+    GH->>WF3: 2. push 이벤트 트리거
+    activate WF3
+
+    WF3->>WF3: 3. 새로 추가된 src/*.js 파일 감지
+    WF3->>WF3: 4. git diff로 추가된 파일 목록 추출
+
+    WF3->>GH: 5. 문서화 요청 Issue 생성
+    Note right of WF3: @claude 멘션 포함<br/>"새 파일 문서화 요청"
+
+    Note over GH,Core: Issue 생성이 claude.yml 트리거
+
+    GH->>Core: 6. issue_comment 또는 issues 이벤트
+    activate Core
+
+    Core->>Core: 7. @claude 멘션 감지
+    Core->>Core: 8. Issue 컨텍스트 파싱
+
+    Core->>Actions: 9. ai-actions 실행
+    activate Actions
+
+    Actions->>Actions: 10. 새 파일 내용 읽기
+    Actions->>Actions: 11. 코드 구조 분석
+
+    Actions->>API: 12. Claude API 호출
+    activate API
+
+    API->>API: 13. 함수/클래스 구조 파악
+    API->>API: 14. JSDoc 스타일 문서 생성
+    API->>API: 15. 사용 예제 코드 작성
+    API->>API: 16. README 업데이트 제안
+
+    API-->>Actions: 17. 문서화 결과 반환
+    deactivate API
+
+    Actions->>GH: 18. gh issue comment 실행
+    Note right of Actions: 자동 생성된 문서를<br/>Issue 코멘트로 게시
+
+    deactivate Actions
+    deactivate Core
+    deactivate WF3
+
+    GH-->>Dev: 19. 문서화 완료 알림
+    deactivate GH
+
+    Note over Dev,API: Complete - 개발자가 자동 생성된 문서 확인
                             </div>
                         </div>
                     </div>
@@ -1003,25 +1237,70 @@ sequenceDiagram
                 <div class="detail-body">
                     <div class="detail-section">
                         <h4>Workflow Diagram</h4>
-                        <div class="workflow-diagram">
-                            <div class="mermaid">
+                        <div class="workflow-diagram" style="padding: 2rem;">
+                            <div class="mermaid-sequence">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '14px' }}}%%
 sequenceDiagram
+    autonumber
     participant Dev as Developer
-    participant GH as GitHub
-    participant WF4 as workflow-example-4
-    participant Claude as claude.yml
-    participant AI as Claude AI
+    participant GH as GitHub Repository
+    participant WF4 as workflow-example-4-test-coverage.yml
+    participant Core as claude.yml (Core Workflow)
+    participant Actions as ai-actions
+    participant API as Claude API
 
-    Dev->>GH: Create PR with new code
-    GH->>WF4: Trigger (PR with test needs)
-    WF4->>WF4: Check PR title/label
-    WF4->>Claude: workflow_call with context
-    Claude->>AI: Analyze code structure
-    AI->>AI: Identify testable units
-    AI->>AI: Generate test cases
-    AI->>AI: Suggest edge cases
-    AI->>GH: gh pr comment with tests
-    GH->>Dev: Test suggestions ready
+    Note over Dev,API: Scenario 4: Test Coverage Analysis Flow
+
+    Dev->>GH: 1. PR 생성 (테스트가 필요한 코드 포함)
+    activate GH
+    Note right of Dev: PR 제목에 "needs test"<br/>또는 src/ 파일 변경
+
+    GH->>WF4: 2. pull_request 이벤트 트리거
+    activate WF4
+
+    WF4->>WF4: 3. PR 제목/라벨 확인
+    Note right of WF4: title contains "test"<br/>or label == "needs-tests"
+
+    WF4->>WF4: 4. src/ 파일 변경 확인
+    WF4->>WF4: 5. PR 번호 추출
+
+    WF4->>Core: 6. workflow_call 호출
+    Note right of WF4: prompt: "테스트 커버리지 분석"<br/>target_number: PR번호<br/>target_type: "pr"
+    activate Core
+
+    Core->>Core: 7. workflow_call 검증
+    Core->>Core: 8. PR 컨텍스트 설정
+
+    Core->>Actions: 9. ai-actions 실행
+    activate Actions
+
+    Actions->>Actions: 10. PR diff 분석
+    Actions->>Actions: 11. 변경된 함수/클래스 식별
+
+    Actions->>API: 12. Claude API 호출
+    activate API
+
+    API->>API: 13. 테스트 가능한 유닛 식별
+    API->>API: 14. 각 함수별 테스트 케이스 설계
+    API->>API: 15. 엣지 케이스 도출
+    API->>API: 16. 경계값 테스트 추가
+    API->>API: 17. 모킹 전략 수립
+    API->>API: 18. Jest/Mocha 형식 코드 생성
+
+    API-->>Actions: 19. 테스트 코드 반환
+    deactivate API
+
+    Actions->>GH: 20. gh pr comment 실행
+    Note right of Actions: 생성된 테스트 코드를<br/>PR 코멘트로 게시
+
+    deactivate Actions
+    deactivate Core
+    deactivate WF4
+
+    GH-->>Dev: 21. 테스트 제안 알림
+    deactivate GH
+
+    Note over Dev,API: Complete - 개발자가 제안된 테스트 코드 확인 및 적용
                             </div>
                         </div>
                     </div>
@@ -1066,25 +1345,70 @@ on:
                 <div class="detail-body">
                     <div class="detail-section">
                         <h4>Workflow Diagram</h4>
-                        <div class="workflow-diagram">
-                            <div class="mermaid">
+                        <div class="workflow-diagram" style="padding: 2rem;">
+                            <div class="mermaid-sequence">
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '14px' }}}%%
 sequenceDiagram
-    participant Bot as Dependabot/Dev
-    participant GH as GitHub
-    participant WF5 as workflow-example-5
-    participant Claude as claude.yml
-    participant AI as Claude AI
+    autonumber
+    participant Bot as Dependabot / Developer
+    participant GH as GitHub Repository
+    participant WF5 as workflow-example-5-dependency-review.yml
+    participant Core as claude.yml (Core Workflow)
+    participant Actions as ai-actions
+    participant API as Claude API
 
-    Bot->>GH: Create dependency update PR
-    GH->>WF5: Trigger (PR with package.json)
-    WF5->>WF5: Check title contains 'bump'/'deps'
-    WF5->>Claude: workflow_call with context
-    Claude->>AI: Analyze package changes
-    AI->>AI: Check security advisories
-    AI->>AI: Review breaking changes
-    AI->>AI: Assess compatibility
-    AI->>GH: gh pr comment with review
-    GH->>Bot: Security review complete
+    Note over Bot,API: Scenario 5: Dependency Review Flow
+
+    Bot->>GH: 1. 의존성 업데이트 PR 생성
+    activate GH
+    Note right of Bot: PR 제목: "bump lodash"<br/>package.json 변경 포함
+
+    GH->>WF5: 2. pull_request 이벤트 트리거
+    activate WF5
+
+    WF5->>WF5: 3. 파일 경로 확인 (package.json)
+    WF5->>WF5: 4. PR 제목 확인 (contains 'bump')
+    WF5->>WF5: 5. PR 번호 추출
+
+    WF5->>Core: 6. workflow_call 호출
+    Note right of WF5: prompt: "의존성 보안 검토"<br/>target_number: PR번호<br/>target_type: "pr"
+    activate Core
+
+    Core->>Core: 7. workflow_call 검증
+    Core->>Core: 8. PR 컨텍스트 설정
+
+    Core->>Actions: 9. ai-actions 실행
+    activate Actions
+
+    Actions->>Actions: 10. package.json diff 분석
+    Actions->>Actions: 11. 변경된 패키지 목록 추출
+
+    Actions->>API: 12. Claude API 호출
+    activate API
+
+    API->>API: 13. 패키지별 버전 변경 분석
+    Note right of API: Major/Minor/Patch 구분
+
+    API->>API: 14. CVE 보안 취약점 확인
+    API->>API: 15. Breaking Changes 검토
+    API->>API: 16. 라이선스 호환성 확인
+    API->>API: 17. 번들 사이즈 영향 분석
+    API->>API: 18. 마이그레이션 가이드 작성
+
+    API-->>Actions: 19. 보안 검토 결과 반환
+    deactivate API
+
+    Actions->>GH: 20. gh pr comment 실행
+    Note right of Actions: 보안 검토 결과를<br/>PR 코멘트로 게시
+
+    deactivate Actions
+    deactivate Core
+    deactivate WF5
+
+    GH-->>Bot: 21. 보안 검토 완료 알림
+    deactivate GH
+
+    Note over Bot,API: Complete - 의존성 보안 검토 결과 확인 후 Merge 결정
                             </div>
                         </div>
                     </div>
@@ -1223,7 +1547,7 @@ claude_args: |
     </footer>
 
     <script>
-        // Initialize Mermaid
+        // Initialize Mermaid with enhanced settings
         mermaid.initialize({
             startOnLoad: true,
             theme: 'base',
@@ -1233,16 +1557,37 @@ claude_args: |
                 primaryBorderColor: '#4f46e5',
                 lineColor: '#8b5cf6',
                 secondaryColor: '#f1f5f9',
-                tertiaryColor: '#e2e8f0'
+                tertiaryColor: '#e2e8f0',
+                noteBkgColor: '#fef3c7',
+                noteTextColor: '#92400e',
+                noteBorderColor: '#f59e0b',
+                actorBkg: '#6366f1',
+                actorTextColor: '#fff',
+                actorBorder: '#4f46e5',
+                signalColor: '#1e293b',
+                signalTextColor: '#1e293b'
             },
             flowchart: {
-                useMaxWidth: true,
+                useMaxWidth: false,
                 htmlLabels: true,
-                curve: 'basis'
+                curve: 'basis',
+                padding: 20,
+                nodeSpacing: 50,
+                rankSpacing: 80
             },
             sequence: {
-                useMaxWidth: true,
-                wrap: true
+                useMaxWidth: false,
+                wrap: true,
+                width: 200,
+                height: 50,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: false,
+                actorMargin: 80,
+                diagramMarginX: 50,
+                diagramMarginY: 30
             }
         });
 
