@@ -8,6 +8,9 @@
 # - 📝 항상 최신 문서 유지
 # - 🔄 자동으로 변경사항 반영
 # - 👥 개발자는 코드에만 집중
+#
+# 참고: ai-actions는 push 이벤트를 지원하지 않으므로
+# 이슈를 생성하여 Claude를 트리거하는 방식으로 동작합니다.
 
 name: Auto Documentation Update
 
@@ -60,33 +63,36 @@ jobs:
           CHANGED=$(git diff --name-only HEAD^ HEAD | grep -E '\.(js|ts|jsx|tsx|py|go|java)$' | head -10 | tr '\n' ' ')
           echo "changed_files=$CHANGED" >> $GITHUB_OUTPUT
 
-  # Claude Code workflow를 직접 호출 (workflow_call 사용)
-  update-docs:
+  # 이슈를 생성하여 Claude 트리거 (push 이벤트는 ai-actions 미지원)
+  create-docs-issue:
     needs: check-docs
     if: needs.check-docs.outputs.needs_update == 'true'
-    uses: ./.github/workflows/claude.yml
-    with:
-      prompt: |
-        최근 변경사항을 반영하여 문서를 업데이트해주세요.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create documentation update issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create \
+            --title "📝 문서 업데이트 요청 - ${{ needs.check-docs.outputs.commit_sha }}" \
+            --body "@claude 최근 변경사항을 반영하여 문서를 업데이트해주세요.
 
-        ## 최근 변경사항
-        - 커밋: ${{ needs.check-docs.outputs.commit_sha }}
-        - 메시지: ${{ needs.check-docs.outputs.commit_message }}
+          ## 최근 변경사항
+          - **커밋**: ${{ needs.check-docs.outputs.commit_sha }}
+          - **메시지**: ${{ needs.check-docs.outputs.commit_message }}
 
-        ## 변경된 파일들
-        ${{ needs.check-docs.outputs.changed_files }}
+          ## 변경된 파일들
+          ${{ needs.check-docs.outputs.changed_files }}
 
-        ## 요청 사항
-        1. 📖 README.md 업데이트 (필요한 경우)
-        2. 📚 API 문서 업데이트
-        3. 💡 사용 예제 추가 또는 업데이트
-        4. 📋 CHANGELOG.md에 변경사항 기록
+          ## 요청 사항
+          1. 📖 README.md 업데이트 (필요한 경우)
+          2. 📚 API 문서 업데이트
+          3. 💡 사용 예제 추가 또는 업데이트
+          4. 📋 CHANGELOG.md에 변경사항 기록
 
-        문서를 업데이트한 후 PR을 생성해주세요.
-        `gh pr create --title "docs: 문서 업데이트" --body "내용"` 명령어를 사용하세요.
+          문서를 업데이트한 후 PR을 생성해주세요.
+          \`gh pr create --title \"docs: 문서 업데이트\" --body \"내용\"\` 명령어를 사용하세요.
 
-        작업 완료 후 이슈를 생성하여 결과를 알려주세요.
-        `gh issue create --title "📝 문서 업데이트 완료" --body "결과 내용"` 명령어를 사용하세요.
-      target_number: 0
-      target_type: issue
-    secrets: inherit
+          작업 완료 후 이 이슈에 결과를 코멘트로 남겨주세요." \
+            --label "documentation" \
+            --repo ${{ github.repository }}
