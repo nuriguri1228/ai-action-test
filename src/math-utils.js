@@ -1,4 +1,5 @@
 // Math utilities for common calculations
+// Version: 1.0.0
 
 class MathUtils {
   // Add two numbers
