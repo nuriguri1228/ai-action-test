@@ -30,6 +30,7 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  actions: read
 
 jobs:
   review-dependencies:
@@ -73,40 +74,6 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
           fi
 
-      - name: Request AI Review
-        if: steps.check.outputs.is_dependency_update == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "@claude 이 의존성 업데이트를 검토해주세요.
-
-          ## 검토 요청 사항
-
-          1. 🔍 **변경 사항 분석**
-             - 어떤 패키지가 어떤 버전으로 업데이트되었는지
-             - Major/Minor/Patch 업데이트인지 확인
-
-          2. ⚠️ **Breaking Changes 확인**
-             - Breaking changes가 있는지 확인
-             - 코드 수정이 필요한 부분 파악
-             - 마이그레이션 가이드 제공
-
-          3. 🛡️ **보안 이슈**
-             - 보안 취약점 수정이 포함되어 있는지
-             - 보안 업데이트의 중요도
-
-          4. 🧪 **테스트 권장사항**
-             - 테스트해야 할 주요 기능
-             - 영향받을 수 있는 코드 영역
-
-          5. 📝 **권장 조치**
-             - 즉시 병합해도 되는지
-             - 추가 확인이 필요한 부분
-             - 코드 수정이 필요한지
-
-          상세하고 구체적인 리뷰를 부탁드립니다."
-
       - name: Add review labels
         if: steps.check.outputs.is_dependency_update == 'true'
         env:
@@ -123,6 +90,51 @@ jobs:
           # 레이블 추가
           gh pr edit ${{ github.event.pull_request.number }} \
             --add-label "dependencies,ai-reviewed"
+
+      - name: Run AI Dependency Review
+        if: steps.check.outputs.is_dependency_update == 'true'
+        id: claude
+        uses: buizclue/ai-actions@main
+        with:
+          # GitHub API 인증
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Claude AI 인증 - Max 사용자 OAuth 토큰
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # CI 결과 조회 권한
+          additional_permissions: |
+            actions: read
+
+          # 의존성 검토 프롬프트
+          prompt: |
+            이 의존성 업데이트를 검토해주세요.
+
+            ## 검토 요청 사항
+
+            1. 🔍 **변경 사항 분석**
+               - 어떤 패키지가 어떤 버전으로 업데이트되었는지
+               - Major/Minor/Patch 업데이트인지 확인
+
+            2. ⚠️ **Breaking Changes 확인**
+               - Breaking changes가 있는지 확인
+               - 코드 수정이 필요한 부분 파악
+               - 마이그레이션 가이드 제공
+
+            3. 🛡️ **보안 이슈**
+               - 보안 취약점 수정이 포함되어 있는지
+               - 보안 업데이트의 중요도
+
+            4. 🧪 **테스트 권장사항**
+               - 테스트해야 할 주요 기능
+               - 영향받을 수 있는 코드 영역
+
+            5. 📝 **권장 조치**
+               - 즉시 병합해도 되는지
+               - 추가 확인이 필요한 부분
+               - 코드 수정이 필요한지
+
+            상세하고 구체적인 리뷰를 부탁드립니다.
 
 
       - name: Check for security updates
