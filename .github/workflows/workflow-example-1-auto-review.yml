@@ -22,36 +22,36 @@ permissions:
   actions: read
 
 jobs:
-  auto-review:
+  # Claude Code workflow를 직접 호출 (workflow_call 사용)
+  ai-review:
+    uses: ./.github/workflows/claude.yml
+    with:
+      prompt: |
+        이 PR을 자세히 리뷰해주세요. 다음 항목들을 중점적으로 확인해주세요:
+
+        1. 🔒 보안 취약점 (SQL injection, XSS, 인증/인가 이슈 등)
+        2. ⚡ 성능 이슈 (불필요한 루프, 메모리 누수 등)
+        3. 📝 코드 품질 (가독성, 유지보수성, 중복 코드)
+        4. ✅ 베스트 프랙티스 준수 여부
+        5. 🐛 잠재적 버그나 엣지 케이스
+
+        개선이 필요한 부분이 있다면 구체적인 코드 예시와 함께 제안해주세요.
+      target_number: ${{ github.event.pull_request.number }}
+      target_type: pr
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  add-label:
     runs-on: ubuntu-latest
+    needs: ai-review
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Request AI Code Review (via comment)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "@claude [ai-auto] 이 PR을 자세히 리뷰해주세요. 다음 항목들을 중점적으로 확인해주세요:
-
-          1. 🔒 보안 취약점 (SQL injection, XSS, 인증/인가 이슈 등)
-          2. ⚡ 성능 이슈 (불필요한 루프, 메모리 누수 등)
-          3. 📝 코드 품질 (가독성, 유지보수성, 중복 코드)
-          4. ✅ 베스트 프랙티스 준수 여부
-          5. 🐛 잠재적 버그나 엣지 케이스
-
-          개선이 필요한 부분이 있다면 구체적인 코드 예시와 함께 제안해주세요."
-
       - name: Add review label
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # 레이블이 없으면 생성
-          if ! gh label list | grep -q "ai-reviewed"; then
-            gh label create "ai-reviewed" --color "0E8A16" --description "AI 코드 리뷰 완료" || true
+          if ! gh label list --repo ${{ github.repository }} | grep -q "ai-reviewed"; then
+            gh label create "ai-reviewed" --color "0E8A16" --description "AI 코드 리뷰 완료" --repo ${{ github.repository }} || true
           fi
           # 레이블 추가
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-reviewed"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "ai-reviewed" --repo ${{ github.repository }}

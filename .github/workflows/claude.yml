@@ -9,10 +9,31 @@ on:
     types: [opened, assigned]
   pull_request_review:
     types: [submitted]
+  # Reusable workflow - 다른 워크플로우에서 직접 호출 가능
+  workflow_call:
+    inputs:
+      prompt:
+        description: 'Claude에게 전달할 프롬프트'
+        required: true
+        type: string
+      target_number:
+        description: 'PR 또는 이슈 번호'
+        required: true
+        type: number
+      target_type:
+        description: 'pr 또는 issue'
+        required: false
+        type: string
+        default: 'pr'
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: true
 
 jobs:
   claude:
+    # workflow_call인 경우 조건 없이 실행, 그 외에는 기존 조건 적용
     if: |
+      github.event_name == 'workflow_call' ||
       (github.event_name == 'issue_comment' &&
        contains(github.event.comment.body, '@claude') &&
        (github.event.comment.author.type != 'Bot' ||
@@ -34,15 +55,23 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # workflow_call인 경우
+          if [ "${{ github.event_name }}" = "workflow_call" ]; then
+            NUMBER="${{ inputs.target_number }}"
+            if [ "${{ inputs.target_type }}" = "issue" ]; then
+              gh issue comment "$NUMBER" --body "🤖 AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)" --repo ${{ github.repository }}
+            else
+              gh pr comment "$NUMBER" --body "🤖 AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)" --repo ${{ github.repository }}
+            fi
           # issue / issue_comment (이슈 또는 PR 코멘트)
-          if [ "${{ github.event_name }}" = "issue_comment" ] || [ "${{ github.event_name }}" = "issues" ]; then
+          elif [ "${{ github.event_name }}" = "issue_comment" ] || [ "${{ github.event_name }}" = "issues" ]; then
             NUMBER="${{ github.event.issue.number }}"
-            gh issue comment "$NUMBER" --body "AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)"
+            gh issue comment "$NUMBER" --body "🤖 AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)"
 
           # PR 리뷰 / 리뷰 코멘트
           elif [ "${{ github.event_name }}" = "pull_request_review" ] || [ "${{ github.event_name }}" = "pull_request_review_comment" ]; then
             NUMBER="${{ github.event.pull_request.number }}"
-            gh pr comment "$NUMBER" --body "AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)"
+            gh pr comment "$NUMBER" --body "🤖 AI가 이 요청을 처리 중입니다. (Claude Code 워크플로우 실행 중)"
           fi
 
       - name: Checkout repository
@@ -67,8 +96,8 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Optional: 커스텀 프롬프트
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          # workflow_call로 호출된 경우 전달받은 프롬프트 사용
+          prompt: ${{ inputs.prompt || '' }}
 
           # Optional: Claude CLI 추가 인자
           # claude_args: '--allowed-tools Bash(gh pr:*)'
