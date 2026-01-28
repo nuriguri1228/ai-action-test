@@ -135,6 +135,10 @@ git push
 │       ├── workflow-example-3-auto-docs.yml
 │       ├── workflow-example-4-test-coverage.yml
 │       └── workflow-example-5-dependency-review.yml
+├── src/                                       # 소스 코드
+│   ├── array-utils.js                         # 배열 유틸리티 함수
+│   ├── math-utils.js                          # 수학 유틸리티 함수
+│   └── string-utils.js                        # 문자열 유틸리티 함수
 ├── examples/                                  # 🎯 실습 예제 코드
 │   ├── scenario-1-auto-review/                # 코드 리뷰 예제
 │   │   ├── calculator.js                      # 이슈가 있는 샘플 코드
@@ -159,6 +163,62 @@ git push
 ├── index.html                                 # GitHub Pages 메인 웹페이지
 └── README.md                                  # 프로젝트 개요 (이 파일)
 ```
+
+## 📚 유틸리티 라이브러리
+
+### ArrayUtils
+
+배열 조작을 위한 유틸리티 클래스입니다.
+
+#### 사용 예제
+
+```javascript
+const ArrayUtils = require('./src/array-utils');
+const arrayUtils = new ArrayUtils();
+
+// 배열에서 중복 제거
+const numbers = [1, 2, 2, 3, 4, 4, 5];
+console.log(arrayUtils.unique(numbers)); // [1, 2, 3, 4, 5]
+
+// 배열을 청크로 분할
+const items = [1, 2, 3, 4, 5, 6, 7, 8];
+console.log(arrayUtils.chunk(items, 3)); // [[1, 2, 3], [4, 5, 6], [7, 8]]
+
+// 객체 배열을 키로 그룹화
+const users = [
+  { name: 'Alice', role: 'admin' },
+  { name: 'Bob', role: 'user' },
+  { name: 'Charlie', role: 'admin' }
+];
+console.log(arrayUtils.groupBy(users, 'role'));
+// { admin: [{name: 'Alice', role: 'admin'}, {name: 'Charlie', role: 'admin'}],
+//   user: [{name: 'Bob', role: 'user'}] }
+
+// 통계 계산
+const scores = [85, 90, 75, 95, 88];
+console.log(arrayUtils.average(scores)); // 86.6
+console.log(arrayUtils.max(scores));     // 95
+console.log(arrayUtils.min(scores));     // 75
+```
+
+#### API 메서드
+
+- `unique(arr)` - 배열에서 중복 값 제거
+- `flatten(arr, depth)` - 중첩 배열을 평탄화
+- `groupBy(arr, key)` - 키를 기준으로 배열을 그룹화
+- `chunk(arr, size)` - 배열을 지정된 크기의 청크로 분할
+- `sum(arr)` - 숫자 배열의 합계
+- `average(arr)` - 숫자 배열의 평균
+- `min(arr)` - 배열의 최소값
+- `max(arr)` - 배열의 최대값
+- `shuffle(arr)` - 배열을 무작위로 섞기
+- `take(arr, n)` - 처음 n개 요소 가져오기
+- `takeLast(arr, n)` - 마지막 n개 요소 가져오기
+- `uniqBy(arr, key)` - 키를 기준으로 중복 제거
+- `partition(arr, predicate)` - 조건에 따라 배열을 두 그룹으로 분할
+- `zip(...arrays)` - 여러 배열을 하나로 합치기
+
+자세한 API 문서는 [API.md](./API.md)를 참고하세요.
 
 ## 🔧 기술 스택
 
