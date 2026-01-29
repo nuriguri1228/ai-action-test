@@ -960,7 +960,7 @@ jobs:
                     <!-- Auth Method Cards -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 0 0 2rem 4rem;">
 
-                        <!-- Method A: OAuth Token -->
+                        <!-- Method A: /install-github-app -->
                         <div style="background: white; border: 2px solid #6366f1; border-radius: 12px; padding: 1.5rem;">
                             <h4 style="color: #6366f1; margin-bottom: 0.5rem;">A. /install-github-app (권장)</h4>
                             <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.75rem;">
@@ -985,33 +985,41 @@ claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}</pre></code>
                                 <li>GitHub App + Secret 자동 구성</li>
                             </ul>
                             <div class="info-box warning" style="margin-top: 0.75rem; margin-bottom: 0;">
-                                <strong>GitHub Enterprise:</strong> 사내 GHES 환경에서는 이 명령이 동작하지 않을 수 있습니다. 아래 "GitHub Enterprise 수동 설정 가이드"를 참고하세요.
+                                <strong>GitHub Enterprise:</strong> 사내 GHES 환경에서는 이 명령이 동작하지 않을 수 있습니다. 방법 B 또는 C를 사용하세요.
                             </div>
                         </div>
 
-                        <!-- Method B: API Key -->
+                        <!-- Method B: setup.md 방식 (수동 토큰 등록) -->
                         <div style="background: white; border: 2px solid var(--warning); border-radius: 12px; padding: 1.5rem;">
-                            <h4 style="color: var(--warning); margin-bottom: 0.5rem;">B. Anthropic API Key</h4>
+                            <h4 style="color: var(--warning); margin-bottom: 0.5rem;">B. 수동 토큰 등록 (사내 환경용)</h4>
                             <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.75rem;">
-                                Anthropic Console에서 직접 발급받는 API Key입니다.
-                                <code>sk-ant-api03-</code> 형식으로 시작하며, OAuth 토큰과는 다른 별도의 인증 수단입니다.
+                                GitHub App 설치 없이, Anthropic의
+                                <a href="https://github.com/anthropics/claude-code-action/blob/main/docs/setup.md" target="_blank" style="color: var(--primary);">공식 setup.md</a>에
+                                기재된 방식으로 수동 구성합니다. GHES 환경에서 <code>/install-github-app</code>이 동작하지 않을 때 사용합니다.
                             </p>
                             <div class="code-block" style="margin: 0.5rem 0;">
                                 <code><pre>
-# Anthropic Console에서 API Key 발급
-# https://console.anthropic.com/
+# 1) Claude GitHub App 수동 설치
+#    https://github.com/apps/claude
+#    → 대상 Repository에 Install
+#    (GHES: 관리자에게 App 등록 요청)
 
-# GitHub Secret 등록
+# 2) Anthropic Console에서 API Key 발급
+#    https://console.anthropic.com/
+
+# 3) GitHub Secret 등록
+#    Repository > Settings > Secrets > Actions
 Name:  ANTHROPIC_API_KEY
 Value: sk-ant-api03-xxxxx...
 
-# claude.yml에서 사용 (OAuth 대신)
+# 4) claude.yml에서 사용
 anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}</pre></code>
                             </div>
                             <ul class="feature-list" style="margin: 0;">
-                                <li>구독 없이 사용 가능 (종량제)</li>
-                                <li>토큰 만료 걱정 없음</li>
-                                <li>API 호출량에 따라 과금</li>
+                                <li>GitHub App 자동 설치 불필요</li>
+                                <li>토큰 만료 없음 (장기 유효)</li>
+                                <li>사내 GHES 환경에 적합</li>
+                                <li>API 사용량에 따라 종량제 과금</li>
                             </ul>
                         </div>
 
@@ -1020,7 +1028,7 @@ anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}</pre></code>
                             <h4 style="color: var(--success); margin-bottom: 0.5rem;">C. .credentials 파일 활용 (우회)</h4>
                             <p style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.75rem;">
                                 로컬에서 Claude Code에 한번이라도 로그인하면 <code>~/.claude/.credentials.json</code> 파일에
-                                OAuth 토큰이 자동 저장됩니다. 이 토큰을 추출하면 <code>setup-token</code> 없이도 사용 가능합니다.
+                                OAuth 토큰이 자동 저장됩니다. 이 토큰을 추출하여 빠르게 테스트할 수 있습니다.
                             </p>
                             <div class="code-block" style="margin: 0.5rem 0;">
                                 <code><pre>
@@ -1066,16 +1074,16 @@ Value: (accessToken 값 그대로 복사)
                             <thead>
                                 <tr>
                                     <th>비교 항목</th>
-                                    <th>A. OAuth Token</th>
-                                    <th>B. API Key</th>
+                                    <th>A. /install-github-app</th>
+                                    <th>B. 수동 토큰 등록</th>
                                     <th>C. .credentials</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td><strong>발급 방법</strong></td>
-                                    <td><code>/install-github-app</code><br>또는 수동 GitHub App 설정</td>
-                                    <td>Anthropic Console<br>(sk-ant-api03- 형식)</td>
+                                    <td>CLI에서 자동 구성</td>
+                                    <td>Claude App 수동 설치 +<br>Anthropic Console API Key</td>
                                     <td><code>~/.claude/.credentials.json</code><br>에서 accessToken 추출</td>
                                 </tr>
                                 <tr>
@@ -1087,20 +1095,14 @@ Value: (accessToken 값 그대로 복사)
                                 <tr>
                                     <td><strong>토큰 수명</strong></td>
                                     <td>장기 유효</td>
-                                    <td>만료 없음</td>
+                                    <td>만료 없음 (장기 유효)</td>
                                     <td>약 24시간</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>자동 갱신</strong></td>
-                                    <td>지원</td>
-                                    <td>불필요</td>
-                                    <td>미지원</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>팀 공유</strong></td>
-                                    <td>가능</td>
-                                    <td>Organization Key 가능</td>
-                                    <td>개인 계정 한정</td>
+                                    <td><strong>GHES 호환</strong></td>
+                                    <td>미지원 가능성</td>
+                                    <td><span class="impact-badge high">지원</span></td>
+                                    <td><span class="impact-badge high">지원</span></td>
                                 </tr>
                                 <tr>
                                     <td><strong>운영 안정성</strong></td>
@@ -1110,54 +1112,37 @@ Value: (accessToken 값 그대로 복사)
                                 </tr>
                                 <tr>
                                     <td><strong>추천 용도</strong></td>
-                                    <td>프로덕션 운영</td>
-                                    <td>프로덕션 운영</td>
+                                    <td>GitHub.com 프로덕션</td>
+                                    <td>GHES / 사내 환경</td>
                                     <td>빠른 테스트 / PoC</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- GitHub Enterprise Manual Setup Guide -->
-                    <div style="margin: 0 0 2rem 4rem; background: white; border: 2px solid var(--danger); border-radius: 12px; padding: 2rem;">
-                        <h4 style="color: var(--danger); margin-bottom: 1rem;">GitHub Enterprise (GHES) 수동 설정 가이드</h4>
+                    <!-- Method B Detail Guide -->
+                    <div style="margin: 0 0 2rem 4rem; background: white; border: 2px solid var(--warning); border-radius: 12px; padding: 2rem;">
+                        <h4 style="color: var(--warning); margin-bottom: 1rem;">방법 B 상세 가이드: 수동 토큰 등록 (사내 GHES 환경)</h4>
                         <p style="color: var(--gray-600); margin-bottom: 1.5rem;">
-                            사내 GitHub Enterprise Server 환경에서는 <code>/install-github-app</code> 명령이 동작하지 않을 수 있습니다.
-                            이 경우 아래 절차에 따라 수동으로 동일한 구성을 완료할 수 있습니다.
+                            <code>/install-github-app</code>이 동작하지 않는 사내 GitHub Enterprise 환경에서는
+                            <a href="https://github.com/anthropics/claude-code-action/blob/main/docs/setup.md" target="_blank" style="color: var(--primary);">Anthropic 공식 setup.md</a>에
+                            기재된 수동 설정 방식을 따릅니다.
                         </p>
 
                         <div class="steps">
                             <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
                                 <div class="step-number">1</div>
                                 <div class="step-content">
-                                    <h4>GitHub App 수동 생성</h4>
-                                    <p>GHES 관리자 또는 Organization Owner가 직접 GitHub App을 생성합니다.</p>
-                                    <div class="code-block" style="margin-top: 0.75rem;">
-                                        <code><pre>
-# GHES에서 GitHub App 생성 경로
-https://your-ghes-domain/settings/apps/new
-
-# 또는 Organization 레벨:
-https://your-ghes-domain/organizations/YOUR_ORG/settings/apps/new
-
-# 필수 입력 항목:
-# - GitHub App name: "Claude AI Assistant" (원하는 이름)
-# - Homepage URL: https://your-ghes-domain
-# - Webhook: Active 체크 해제 (불필요)</pre></code>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
-                                <div class="step-number">2</div>
-                                <div class="step-content">
-                                    <h4>GitHub App 권한 설정</h4>
-                                    <p>App 생성 시 아래 Repository permissions를 설정합니다.</p>
+                                    <h4>Claude GitHub App 설치</h4>
+                                    <p>
+                                        공식 Claude GitHub App(<a href="https://github.com/apps/claude" target="_blank" style="color: var(--primary);">https://github.com/apps/claude</a>)을
+                                        대상 Repository에 설치합니다.
+                                    </p>
                                     <div style="overflow-x: auto; margin-top: 0.75rem;">
                                         <table class="impact-table">
                                             <thead>
                                                 <tr>
-                                                    <th>Permission</th>
+                                                    <th>App이 요청하는 권한</th>
                                                     <th>Level</th>
                                                     <th>용도</th>
                                                 </tr>
@@ -1166,25 +1151,42 @@ https://your-ghes-domain/organizations/YOUR_ORG/settings/apps/new
                                                 <tr>
                                                     <td><strong>Contents</strong></td>
                                                     <td>Read &amp; Write</td>
-                                                    <td>코드 파일 읽기/수정, 브랜치 생성</td>
+                                                    <td>코드 파일 읽기/수정</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Issues</strong></td>
                                                     <td>Read &amp; Write</td>
-                                                    <td>이슈 코멘트 작성, 이슈 생성</td>
+                                                    <td>이슈 응답</td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Pull requests</strong></td>
                                                     <td>Read &amp; Write</td>
-                                                    <td>PR 코멘트 작성, PR 생성</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><strong>Actions</strong></td>
-                                                    <td>Read</td>
-                                                    <td>CI 결과 조회 (선택)</td>
+                                                    <td>PR 생성 및 코멘트</td>
                                                 </tr>
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <div class="info-box" style="margin-top: 0.75rem; margin-bottom: 0;">
+                                        <strong>GHES 참고:</strong> 사내 GHES에서는 공식 Claude App을 직접 설치할 수 없을 수 있습니다.
+                                        이 경우 GHES 관리자에게 동일한 권한을 가진 커스텀 GitHub App 등록을 요청하세요.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>ANTHROPIC_API_KEY 발급</h4>
+                                    <p>Anthropic Console에서 API Key를 발급받습니다. 이 키는 만료되지 않으며 장기 운영에 적합합니다.</p>
+                                    <div class="code-block" style="margin-top: 0.75rem;">
+                                        <code><pre>
+# 1) Anthropic Console 접속
+https://console.anthropic.com/
+
+# 2) Settings > API Keys > Create Key
+#    키가 발급되면 한 번만 표시되므로 즉시 복사
+
+# 발급된 키 형식: sk-ant-api03-xxxxx...</pre></code>
                                     </div>
                                 </div>
                             </div>
@@ -1192,20 +1194,19 @@ https://your-ghes-domain/organizations/YOUR_ORG/settings/apps/new
                             <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
                                 <div class="step-number">3</div>
                                 <div class="step-content">
-                                    <h4>Private Key 생성 및 App 설치</h4>
-                                    <p>App 생성 후 Private Key를 발급받고, 대상 Repository에 App을 설치합니다.</p>
+                                    <h4>GitHub Secret 등록</h4>
+                                    <p>발급받은 API Key를 Repository Secret으로 등록합니다.</p>
                                     <div class="code-block" style="margin-top: 0.75rem;">
                                         <code><pre>
-# 1) App 설정 페이지에서 "Generate a private key" 클릭
-#    → .pem 파일 다운로드
+# Repository > Settings > Secrets and variables > Actions
+# "New repository secret" 클릭
 
-# 2) App ID 확인 (App 설정 페이지 상단에 표시)
-#    예: App ID: 12345
+Name:  ANTHROPIC_API_KEY
+Value: sk-ant-api03-xxxxx...
 
-# 3) App 설치
-#    App 설정 > Install App > 대상 Organization 선택
-#    → "Only select repositories" 선택
-#    → 대상 Repository 지정 > Install</pre></code>
+# Organization 전체에 적용하려면:
+# Organization > Settings > Secrets > Actions
+# "New organization secret" 클릭</pre></code>
                                     </div>
                                 </div>
                             </div>
@@ -1213,122 +1214,56 @@ https://your-ghes-domain/organizations/YOUR_ORG/settings/apps/new
                             <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
                                 <div class="step-number">4</div>
                                 <div class="step-content">
-                                    <h4>Repository Secrets 등록</h4>
-                                    <p>GitHub App 인증에 필요한 3가지 Secret을 등록합니다.</p>
+                                    <h4>Workflow 파일 구성</h4>
+                                    <p><code>claude_code_oauth_token</code> 대신 <code>anthropic_api_key</code>를 사용합니다.</p>
                                     <div class="code-block" style="margin-top: 0.75rem;">
                                         <code><pre>
-# Repository > Settings > Secrets and variables > Actions
+# .github/workflows/claude.yml
+name: Claude Code
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
 
-# Secret 1: GitHub App ID
-Name:  APP_ID
-Value: 12345
-
-# Secret 2: GitHub App Private Key (.pem 파일 내용 전체)
-Name:  APP_PRIVATE_KEY
-Value: -----BEGIN RSA PRIVATE KEY-----
-       MIIEpAIBAAKCAQEA... (전체 복사)
-       -----END RSA PRIVATE KEY-----
-
-# Secret 3: Claude 인증 (아래 중 택 1)
-Name:  ANTHROPIC_API_KEY          # API Key 사용 시
-Value: sk-ant-api03-xxxxx...
-
-# 또는
-Name:  CLAUDE_CODE_OAUTH_TOKEN    # .credentials 활용 시
-Value: (accessToken 값)</pre></code>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 1rem;">
-                                <div class="step-number">5</div>
-                                <div class="step-content">
-                                    <h4>Workflow 파일에 GitHub App 토큰 생성 Step 추가</h4>
-                                    <p>기본 <code>GITHUB_TOKEN</code> 대신 GitHub App 토큰을 사용하여 권한 문제를 해결합니다.</p>
-                                    <div class="code-block" style="margin-top: 0.75rem;">
-                                        <code><pre>
-# claude.yml 수정 예시
 jobs:
   claude:
+    if: contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
       issues: write
-      id-token: write
     steps:
-      # GitHub App 토큰 자동 생성
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v2
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
         with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run Claude Code
-        uses: anthropics/claude-code-action@v1
-        with:
-          # GitHub App 토큰 사용 (GITHUB_TOKEN 대신)
-          github_token: ${{ steps.app-token.outputs.token }}
-
-          # Claude 인증 (택 1)
+          # API Key 방식 (OAuth 대신)
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # 또는
-          # claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}</pre></code>
+          # github_token은 기본 제공됨
+          # 추가 옵션
+          claude_args: "--max-turns 10"</pre></code>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="step-item" style="box-shadow: none; padding: 1rem; margin-bottom: 0;">
-                                <div class="step-number">6</div>
+                                <div class="step-number">5</div>
                                 <div class="step-content">
-                                    <h4>GHES 네트워크 구성 확인</h4>
-                                    <p>GitHub Actions Runner에서 외부 API에 접근할 수 있는지 확인합니다.</p>
-                                    <div style="overflow-x: auto; margin-top: 0.75rem;">
-                                        <table class="impact-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Endpoint</th>
-                                                    <th>Port</th>
-                                                    <th>용도</th>
-                                                    <th>필수</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td><code>api.anthropic.com</code></td>
-                                                    <td>443 (HTTPS)</td>
-                                                    <td>Claude API 호출</td>
-                                                    <td><span class="impact-badge high">필수</span></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><code>api.claude.ai</code></td>
-                                                    <td>443 (HTTPS)</td>
-                                                    <td>OAuth 토큰 인증</td>
-                                                    <td>OAuth 사용 시</td>
-                                                </tr>
-                                                <tr>
-                                                    <td><code>your-ghes-domain</code></td>
-                                                    <td>443 (HTTPS)</td>
-                                                    <td>GitHub API (gh CLI)</td>
-                                                    <td><span class="impact-badge high">필수</span></td>
-                                                </tr>
-                                                <tr>
-                                                    <td><code>npm registry</code></td>
-                                                    <td>443 (HTTPS)</td>
-                                                    <td>ai-actions 의존성 설치</td>
-                                                    <td><span class="impact-badge high">필수</span></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <h4>동작 확인</h4>
+                                    <p>설정 완료 후 PR 또는 Issue에서 <code>@claude</code>를 멘션하여 정상 동작을 확인합니다.</p>
+                                    <div class="code-block" style="margin-top: 0.75rem;">
+                                        <code><pre>
+# PR 또는 Issue 코멘트에 입력:
+@claude 이 코드를 리뷰해주세요.
+
+# GitHub Actions 탭에서 워크플로우 실행 확인
+# Repository > Actions > Claude Code</pre></code>
                                     </div>
-                                    <div class="info-box warning" style="margin-top: 1rem; margin-bottom: 0;">
-                                        <strong>폐쇄망 환경:</strong> 외부 인터넷이 차단된 환경에서는 Proxy 설정이 필요하며,
-                                        npm 레지스트리를 사내 JFrog/Nexus로 변경해야 합니다. claude.yml의
-                                        <code>npm_registry_url</code> 옵션을 활용하세요.
+                                    <div class="info-box success" style="margin-top: 0.75rem; margin-bottom: 0;">
+                                        <strong>Tip:</strong> 문제 발생 시 Actions 탭에서 로그를 확인하세요.
+                                        <code>ANTHROPIC_API_KEY</code>가 올바르게 등록되었는지,
+                                        Claude App이 해당 Repository에 설치되었는지 점검합니다.
                                     </div>
                                 </div>
                             </div>
@@ -1343,9 +1278,9 @@ jobs:
                             <div class="code-block" style="margin-top: 0.75rem;">
                                 <code><pre>
 # Settings > Secrets > Actions > New repository secret
-# 방법 A/C: CLAUDE_CODE_OAUTH_TOKEN
+# 방법 A:   CLAUDE_CODE_OAUTH_TOKEN (자동 등록됨)
 # 방법 B:   ANTHROPIC_API_KEY
-# GHES:     APP_ID + APP_PRIVATE_KEY + 위 중 하나</pre></code>
+# 방법 C:   CLAUDE_CODE_OAUTH_TOKEN</pre></code>
                             </div>
                         </div>
                     </div>
